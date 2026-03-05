@@ -1,0 +1,321 @@
+
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Öffnungszeiten – Liutografie</title>
+<style>
+:root{--bg0:#070a08;--bg1:#0f1411;--line:rgba(255,255,255,.12);--text:rgba(255,255,255,.92);--muted:rgba(255,255,255,.70);--ok:#2ee59d;--no:#ff4d6d;--shadow:0 26px 70px rgba(0,0,0,.60);--radius:22px}
+*{box-sizing:border-box}html,body{height:100%}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:radial-gradient(900px 650px at 20% 0%, rgba(46,229,157,.15), transparent 60%),radial-gradient(850px 650px at 85% 10%, rgba(255,77,109,.10), transparent 60%),linear-gradient(180deg,var(--bg0),var(--bg1));color:var(--text);display:grid;place-items:center;padding:16px;overflow:hidden}
+.wrap{width:min(1000px,100%)}
+.shell{border:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.04));border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;max-height:calc(100svh - 32px);display:flex;flex-direction:column}
+header{padding:16px 20px 12px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:14px;align-items:flex-start}
+.brand img{width:100%;max-width:520px;height:auto;max-height:120px;object-fit:contain;display:block;border-radius:16px;background:#fff}
+.sub{margin:8px 0 0;color:var(--muted);font-size:13px}
+.mini{border:1px solid var(--line);padding:12px;border-radius:16px;min-width:240px;background:rgba(0,0,0,.25)}
+.clock{font-weight:850;font-size:18px}.date{font-size:12px;color:var(--muted);margin-top:4px}
+.holiday{font-size:12px;color:var(--no);margin-top:4px;font-weight:750}
+.content{display:grid;grid-template-columns:1.15fr .85fr;border-top:1px solid var(--line);flex:1;min-height:0}
+@media(max-width:820px){.content{grid-template-columns:1fr}}
+.panel{padding:16px 20px;min-height:0}.panel+.panel{border-left:1px solid var(--line)}
+@media(max-width:820px){.panel+.panel{border-left:none;border-top:1px solid var(--line)}}
+.list{display:flex;flex-direction:column;gap:8px}
+.row{display:grid;grid-template-columns:150px 1fr;gap:12px;padding:10px 12px;border-radius:14px;background:rgba(0,0,0,.15)}
+.row.today{border:1px solid rgba(46,229,157,.5);background:rgba(46,229,157,.12)}
+.row .day{color:var(--muted);font-weight:720;font-size:13px}.row.today .day{color:var(--ok)}
+.row .hours{font-weight:720;font-variant-numeric:tabular-nums;font-size:13px}
+.statusCard{border:1px solid var(--line);background:rgba(0,0,0,.25);border-radius:18px;padding:18px;height:100%;display:flex;flex-direction:column;justify-content:space-between;min-height:0}
+.bigStatus{font-size:clamp(36px,4vw,54px);font-weight:950;letter-spacing:-.03em;line-height:1.05}
+.bigStatus.open{color:var(--ok)}.bigStatus.closed{color:var(--no)}
+.countdown{margin-top:8px;font-size:15px;color:var(--muted);font-variant-numeric:tabular-nums}
+.countdown strong{color:var(--text)}
+.detail{margin-top:10px;font-size:18px;font-weight:850}
+.contact{margin-top:14px;padding-top:14px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);line-height:1.7}
+.contact a{color:var(--text);text-decoration:none}
+.address{margin-top:6px}
+
+/* Mobile polish */
+@media (max-width: 720px){
+  /* Allow normal scrolling on phones. The desktop version is "no scroll",
+     but on small screens we must avoid content collision/overlap. */
+  body{display:block;place-items:unset;overflow:auto;padding:12px}
+  .shell{max-height:none}
+  .content{display:flex;flex-direction:column}
+  .panel{width:100%}
+  .shell{border-radius:18px}
+  header{padding:14px 14px 10px}
+  .brand img{max-width:100%;height:auto}
+  .mini{min-width:0;width:100%;margin-top:10px}
+  .content{grid-template-columns:1fr}
+  .panel{padding:14px}
+  .panel+.panel{border-left:none;border-top:1px solid var(--line)}
+  .row{grid-template-columns:1fr;gap:6px}
+  .day{font-size:12px}
+  .hours{font-size:13px;line-height:1.35;word-break:break-word}
+  .bigStatus{font-size:clamp(34px,10vw,44px);line-height:1.05}
+  .detail{font-size:16px;line-height:1.25;word-break:break-word}
+  .countdown{font-size:14px}
+  .contact{font-size:13px}
+  .statusCard{height:auto}
+}
+@media (max-width: 380px){
+  .bigStatus{font-size:32px}
+  .detail{font-size:15px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="shell">
+    <header>
+      <div class="brand">
+        <img src="liutografie-logo.jpg" alt="Liutografie Logo">
+        <p class="sub">Öffnungszeiten</p>
+      </div>
+      <div class="mini">
+        <div class="clock" id="clock"></div>
+        <div class="date" id="date"></div>
+        <div class="holiday" id="holiday" style="display:none;"></div>
+      </div>
+    </header>
+
+    <div class="content">
+      <div class="panel"><div class="list" id="hoursList"></div></div>
+      <div class="panel">
+        <div class="statusCard">
+          <div>
+            <div class="bigStatus closed" id="bigStatus">GESCHLOSSEN</div>
+            <div class="countdown" id="countdown" style="display:none;"></div>
+            <div class="detail" id="detail">—</div>
+          </div>
+
+          <div class="contact">
+            <div><strong>Telefon:</strong> <a href="tel:05723917979">05723 / 917979</a></div>
+            <div><strong>E-Mail:</strong> <a href="mailto:saschaliuto@gmail.com">saschaliuto@gmail.com</a></div>
+            <div class="address"><strong>Adresse:</strong> Am Thermalbad 1, 31542 Bad Nenndorf</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const schedule={
+  1:[["09:00","13:00"],["15:00","18:30"]],
+  2:[["09:00","13:00"],["15:00","18:30"]],
+  3:[["09:00","12:00"]],
+  4:[["09:00","13:00"],["15:00","18:30"]],
+  5:[["09:00","13:00"],["15:00","18:30"]],
+  6:[["09:00","12:00"]],
+  0:[]
+};
+const dayOrder=[1,2,3,4,5,6,0];
+const dayNames=["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag"];
+
+// --- Feiertage (Niedersachsen) ---
+// Gesetzliche Feiertage in Niedersachsen:
+// Neujahr (01.01.), Karfreitag, Ostermontag, Tag der Arbeit (01.05.),
+// Christi Himmelfahrt, Pfingstmontag, Tag der Deutschen Einheit (03.10.),
+// Reformationstag (31.10.), 1. Weihnachtstag (25.12.), 2. Weihnachtstag (26.12.)
+const holidayCache = new Map(); // year -> Map(dateKey -> name)
+
+function dateKey(d){
+  const y=d.getFullYear();
+  const m=String(d.getMonth()+1).padStart(2,"0");
+  const day=String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${day}`;
+}
+
+function addDays(d, days){
+  const x=new Date(d);
+  x.setDate(x.getDate()+days);
+  return x;
+}
+
+// Anonymous Gregorian algorithm (Meeus/Jones/Butcher) for Easter Sunday
+function easterSunday(year){
+  const a=year%19;
+  const b=Math.floor(year/100);
+  const c=year%100;
+  const d=Math.floor(b/4);
+  const e=b%4;
+  const f=Math.floor((b+8)/25);
+  const g=Math.floor((b-f+1)/3);
+  const h=(19*a + b - d - g + 15) % 30;
+  const i=Math.floor(c/4);
+  const k=c%4;
+  const l=(32 + 2*e + 2*i - h - k) % 7;
+  const m=Math.floor((a + 11*h + 22*l)/451);
+  const month=Math.floor((h + l - 7*m + 114) / 31); // 3=March, 4=April
+  const day=((h + l - 7*m + 114) % 31) + 1;
+  return new Date(year, month-1, day, 0,0,0,0);
+}
+
+function holidaysForYear(year){
+  if(holidayCache.has(year)) return holidayCache.get(year);
+
+  const map=new Map();
+
+  // Fixed-date holidays
+  map.set(`${year}-01-01`, "Neujahr");
+  map.set(`${year}-05-01`, "Tag der Arbeit");
+  map.set(`${year}-10-03`, "Tag der Deutschen Einheit");
+  map.set(`${year}-10-31`, "Reformationstag");
+  map.set(`${year}-12-25`, "1. Weihnachtstag");
+  map.set(`${year}-12-26`, "2. Weihnachtstag");
+
+  // Movable (relative to Easter Sunday)
+  const easter=easterSunday(year);
+  map.set(dateKey(addDays(easter,-2)), "Karfreitag");
+  map.set(dateKey(addDays(easter, 1)), "Ostermontag");
+  map.set(dateKey(addDays(easter,39)), "Christi Himmelfahrt");
+  map.set(dateKey(addDays(easter,50)), "Pfingstmontag");
+
+  holidayCache.set(year, map);
+  return map;
+}
+
+function getHolidayName(d){
+  const map=holidaysForYear(d.getFullYear());
+  return map.get(dateKey(d)) || null;
+}
+
+function isHoliday(d){
+  return !!getHolidayName(d);
+}
+
+function toMinutes(hhmm){
+  const h=parseInt(hhmm.slice(0,2),10);
+  const m=parseInt(hhmm.slice(3,5),10);
+  return h*60+m;
+}
+
+function statusNow(now){
+  // Feiertag => ganztägig geschlossen
+  const holidayName = getHolidayName(now);
+  if(holidayName) return {open:false, holidayName};
+
+  const day=now.getDay();
+  const minutes=now.getHours()*60+now.getMinutes();
+  for(const slot of schedule[day]){
+    const s=toMinutes(slot[0]), e=toMinutes(slot[1]);
+    if(minutes>=s && minutes<e) return {open:true, until:slot[1]};
+  }
+  return {open:false};
+}
+
+function nextOpeningDate(now){
+  for(let add=0; add<=14; add++){
+    const d=new Date(now);
+    d.setDate(now.getDate()+add);
+    d.setHours(0,0,0,0);
+
+    // Feiertag => komplett überspringen
+    if(isHoliday(d)) continue;
+
+    const dow=d.getDay();
+    const slots=schedule[dow];
+    if(!slots || slots.length===0) continue;
+
+    if(add===0){
+      const curMin=now.getHours()*60+now.getMinutes();
+      for(const [start] of slots){
+        const s=toMinutes(start);
+        if(s>curMin){
+          const n=new Date(now);
+          n.setHours(parseInt(start.slice(0,2)), parseInt(start.slice(3,5)),0,0);
+          return n;
+        }
+      }
+    } else {
+      const [start]=slots[0];
+      const n=new Date(d);
+      n.setHours(parseInt(start.slice(0,2)), parseInt(start.slice(3,5)),0,0);
+      return n;
+    }
+  }
+  return null;
+}
+
+function formatCountdown(ms){
+  const totalSec=Math.max(0, Math.floor(ms/1000));
+  const h=Math.floor(totalSec/3600);
+  const m=Math.floor((totalSec%3600)/60);
+  const s=totalSec%60;
+  return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+}
+
+function render(){
+  const now=new Date();
+  document.getElementById("clock").textContent=now.toLocaleTimeString("de-DE");
+  document.getElementById("date").textContent=now.toLocaleDateString("de-DE",{weekday:"long",day:"2-digit",month:"2-digit",year:"numeric"});
+
+  const hName = getHolidayName(now);
+  const hEl = document.getElementById("holiday");
+  if(hName){
+    hEl.style.display="block";
+    hEl.textContent = "Feiertag: " + hName;
+  } else {
+    hEl.style.display="none";
+    hEl.textContent = "";
+  }
+
+  const st=statusNow(now);
+  const big=document.getElementById("bigStatus");
+  const detail=document.getElementById("detail");
+  const cd=document.getElementById("countdown");
+
+  if(st.open){
+    big.textContent="GEÖFFNET";
+    big.className="bigStatus open";
+    cd.style.display="none";
+    detail.textContent="Heute bis "+st.until+" Uhr";
+  } else {
+    big.textContent="GESCHLOSSEN";
+    big.className="bigStatus closed";
+
+    if(st.holidayName){
+      cd.style.display="none";
+      detail.textContent="Heute geschlossen (Feiertag: "+st.holidayName+")";
+      // trotzdem nächste Öffnung berechnen
+    }
+
+    const next=nextOpeningDate(now);
+    if(next){
+      const diff=next-now;
+      cd.style.display="block";
+      cd.innerHTML="Öffnet in <strong>"+formatCountdown(diff)+"</strong>";
+
+      const dayLabel = dayNames[next.getDay()];
+      const hh = String(next.getHours()).padStart(2,"0");
+      const mm = String(next.getMinutes()).padStart(2,"0");
+      detail.textContent = (st.holidayName ? ("Heute Feiertag: "+st.holidayName+" · ") : "") + "Nächste Öffnung: "+dayLabel+" "+hh+":"+mm+" Uhr";
+    } else {
+      cd.style.display="none";
+      detail.textContent = st.holidayName ? ("Heute geschlossen (Feiertag: "+st.holidayName+")") : "Derzeit geschlossen";
+    }
+  }
+
+  const list=document.getElementById("hoursList");
+  list.innerHTML="";
+  for(const i of dayOrder){
+    const row=document.createElement("div");
+    row.className="row"+(i===now.getDay()?" today":"");
+    const l=document.createElement("div");
+    l.className="day";
+    l.textContent=dayNames[i];
+    const h=document.createElement("div");
+    h.className="hours";
+    h.textContent=schedule[i].length ? schedule[i].map(s=>s[0]+"–"+s[1]).join(" · ") : "geschlossen";
+    row.appendChild(l); row.appendChild(h); list.appendChild(row);
+  }
+}
+
+render();
+setInterval(render,1000);
+</script>
+</body>
+</html>
