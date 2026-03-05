@@ -29,6 +29,8 @@ header{padding:16px 20px 12px;display:flex;flex-wrap:wrap;justify-content:space-
 .statusCard{border:1px solid var(--line);background:rgba(0,0,0,.25);border-radius:18px;padding:18px;height:100%;display:flex;flex-direction:column;justify-content:space-between;min-height:0}
 .bigStatus{font-size:clamp(36px,4vw,54px);font-weight:950;letter-spacing:-.03em;line-height:1.05}
 .bigStatus.open{color:var(--ok)}.bigStatus.closed{color:var(--no)}
+/* Mittagspause bekommt eigene Farbe (amber-ish) */
+.bigStatus.pause{color:#ffd36a}
 .countdown{margin-top:8px;font-size:15px;color:var(--muted);font-variant-numeric:tabular-nums}
 .countdown strong{color:var(--text)}
 .detail{margin-top:10px;font-size:18px;font-weight:850}
@@ -38,7 +40,7 @@ header{padding:16px 20px 12px;display:flex;flex-wrap:wrap;justify-content:space-
 .contact a{color:var(--text);text-decoration:none}
 .address{margin-top:6px}
 
-/* Mobile polish */
+/* Mobile */
 @media (max-width: 720px){
   body{display:block;place-items:unset;overflow:auto;padding:12px}
   .shell{max-height:none}
@@ -48,7 +50,6 @@ header{padding:16px 20px 12px;display:flex;flex-wrap:wrap;justify-content:space-
   header{padding:14px 14px 10px}
   .brand img{max-width:100%;height:auto}
   .mini{min-width:0;width:100%;margin-top:10px}
-  .content{grid-template-columns:1fr}
   .panel{padding:14px}
   .panel+.panel{border-left:none;border-top:1px solid var(--line)}
   .row{grid-template-columns:1fr;gap:6px}
@@ -67,7 +68,6 @@ header{padding:16px 20px 12px;display:flex;flex-wrap:wrap;justify-content:space-
   <div class="shell">
     <header>
       <div class="brand">
-        <!-- Logo: absolute URL (weil du bestätigt hast, dass diese URL funktioniert) -->
         <img src="https://liutografie.info/liutografie-logo.jpg?v=999" alt="Liutografie Logo">
         <p class="sub">Öffnungszeiten</p>
       </div>
@@ -119,98 +119,102 @@ function toMinutes(hhmm){
   const m=parseInt(hhmm.slice(3,5),10);
   return h*60+m;
 }
+function minutesToHHMM(min){
+  const h = Math.floor(min/60);
+  const m = min%60;
+  return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0");
+}
 
-/** ===== Feiertage Niedersachsen =====
- * Bundesweite Feiertage + Reformationstag (31.10.) für Niedersachsen.
- */
+/** ===== Feiertage Niedersachsen ===== */
 function ymd(date){
-  const y = date.getFullYear();
-  const m = String(date.getMonth()+1).padStart(2,"0");
-  const d = String(date.getDate()).padStart(2,"0");
+  const y=date.getFullYear();
+  const m=String(date.getMonth()+1).padStart(2,"0");
+  const d=String(date.getDate()).padStart(2,"0");
   return `${y}-${m}-${d}`;
 }
-
 function easterSunday(year){
-  // Meeus/Jones/Butcher (Gregorian)
-  const a = year % 19;
-  const b = Math.floor(year / 100);
-  const c = year % 100;
-  const d = Math.floor(b / 4);
-  const e = b % 4;
-  const f = Math.floor((b + 8) / 25);
-  const g = Math.floor((b - f + 1) / 3);
-  const h = (19*a + b - d - g + 15) % 30;
-  const i = Math.floor(c / 4);
-  const k = c % 4;
-  const l = (32 + 2*e + 2*i - h - k) % 7;
-  const m = Math.floor((a + 11*h + 22*l) / 451);
-  const month = Math.floor((h + l - 7*m + 114) / 31); // 3=March, 4=April
-  const day = ((h + l - 7*m + 114) % 31) + 1;
-  const dt = new Date(year, month-1, day);
-  dt.setHours(0,0,0,0);
-  return dt;
+  const a=year%19, b=Math.floor(year/100), c=year%100, d=Math.floor(b/4), e=b%4;
+  const f=Math.floor((b+8)/25), g=Math.floor((b-f+1)/3);
+  const h=(19*a+b-d-g+15)%30, i=Math.floor(c/4), k=c%4;
+  const l=(32+2*e+2*i-h-k)%7, m=Math.floor((a+11*h+22*l)/451);
+  const month=Math.floor((h+l-7*m+114)/31), day=((h+l-7*m+114)%31)+1;
+  const dt=new Date(year,month-1,day); dt.setHours(0,0,0,0); return dt;
 }
-
-function addDays(date, n){
-  const d = new Date(date);
-  d.setDate(d.getDate()+n);
-  d.setHours(0,0,0,0);
-  return d;
+function addDays(date,n){
+  const d=new Date(date); d.setDate(d.getDate()+n); d.setHours(0,0,0,0); return d;
 }
-
 function holidaysNDS(year){
-  const map = new Map();
-
-  // Fixed
-  map.set(`${year}-01-01`, "Neujahr");
-  map.set(`${year}-05-01`, "Tag der Arbeit");
-  map.set(`${year}-10-03`, "Tag der Deutschen Einheit");
-  map.set(`${year}-10-31`, "Reformationstag");
-  map.set(`${year}-12-25`, "1. Weihnachtstag");
-  map.set(`${year}-12-26`, "2. Weihnachtstag");
-
-  // Easter-based
-  const easter = easterSunday(year);
-  map.set(ymd(addDays(easter,-2)), "Karfreitag");
-  map.set(ymd(addDays(easter, 1)), "Ostermontag");
-  map.set(ymd(addDays(easter,39)), "Christi Himmelfahrt");
-  map.set(ymd(addDays(easter,50)), "Pfingstmontag");
-
+  const map=new Map();
+  map.set(`${year}-01-01`,"Neujahr");
+  map.set(`${year}-05-01`,"Tag der Arbeit");
+  map.set(`${year}-10-03`,"Tag der Deutschen Einheit");
+  map.set(`${year}-10-31`,"Reformationstag");
+  map.set(`${year}-12-25`,"1. Weihnachtstag");
+  map.set(`${year}-12-26`,"2. Weihnachtstag");
+  const easter=easterSunday(year);
+  map.set(ymd(addDays(easter,-2)),"Karfreitag");
+  map.set(ymd(addDays(easter, 1)),"Ostermontag");
+  map.set(ymd(addDays(easter,39)),"Christi Himmelfahrt");
+  map.set(ymd(addDays(easter,50)),"Pfingstmontag");
   return map;
 }
-
 function holidayName(date){
-  const map = holidaysNDS(date.getFullYear());
-  const key = ymd(date);
-  return map.get(key) || null;
+  const map=holidaysNDS(date.getFullYear());
+  return map.get(ymd(date)) || null;
 }
-
 function nextHolidayFrom(now){
-  const base = new Date(now);
-  base.setHours(0,0,0,0);
+  const base=new Date(now); base.setHours(0,0,0,0);
   for(let add=0; add<=370; add++){
-    const d = new Date(base);
-    d.setDate(base.getDate()+add);
-    d.setHours(0,0,0,0);
-    if(add===0 && holidayName(now)) continue; // wenn heute Feiertag ist, nimm den nächsten
-    const name = holidayName(d);
-    if(name) return {date:d, name};
+    const d=new Date(base); d.setDate(base.getDate()+add); d.setHours(0,0,0,0);
+    if(add===0 && holidayName(now)) continue;
+    const name=holidayName(d);
+    if(name) return {date:d,name};
   }
   return null;
 }
 
-/** Status jetzt: berücksichtigt Feiertage */
+function formatCountdown(ms){
+  const totalSec=Math.max(0, Math.floor(ms/1000));
+  const h=Math.floor(totalSec/3600);
+  const m=Math.floor((totalSec%3600)/60);
+  const s=totalSec%60;
+  return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+}
+function formatDateShort(date){
+  return date.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric"});
+}
+
+/**
+ * Status jetzt:
+ * - Feiertag => closed + holiday name
+ * - innerhalb eines Slots => open + until
+ * - zwischen 2 Slots am gleichen Tag => pause + resumesAt
+ * - sonst => closed
+ */
 function statusNow(now){
   const hol = holidayName(now);
-  if(hol) return {open:false, holiday: hol};
+  if(hol) return {state:"closed", holiday: hol};
 
-  const day=now.getDay();
-  const minutes=now.getHours()*60+now.getMinutes();
-  for(const slot of schedule[day]){
+  const day = now.getDay();
+  const minutes = now.getHours()*60 + now.getMinutes();
+  const slots = schedule[day] || [];
+
+  // open?
+  for(const slot of slots){
     const s=toMinutes(slot[0]), e=toMinutes(slot[1]);
-    if(minutes>=s && minutes<e) return {open:true, until:slot[1]};
+    if(minutes>=s && minutes<e) return {state:"open", until: slot[1]};
   }
-  return {open:false};
+
+  // Mittagspause? (nur wenn es heute >=2 Slots gibt und wir zwischen Slot1 Ende und Slot2 Start liegen)
+  if(slots.length >= 2){
+    const firstEnd = toMinutes(slots[0][1]);
+    const secondStart = toMinutes(slots[1][0]);
+    if(minutes >= firstEnd && minutes < secondStart){
+      return {state:"pause", resumesAt: slots[1][0]};
+    }
+  }
+
+  return {state:"closed"};
 }
 
 /** Nächste Öffnung: überspringt Feiertage & geschlossene Tage */
@@ -220,12 +224,11 @@ function nextOpeningDate(now){
     d.setDate(now.getDate()+add);
     d.setHours(0,0,0,0);
 
-    // Feiertag? skip
     if(holidayName(d)) continue;
 
     const dow=d.getDay();
-    const slots=schedule[dow];
-    if(!slots || slots.length===0) continue;
+    const slots=schedule[dow] || [];
+    if(slots.length===0) continue;
 
     if(add===0){
       const curMin=now.getHours()*60+now.getMinutes();
@@ -245,18 +248,6 @@ function nextOpeningDate(now){
     }
   }
   return null;
-}
-
-function formatCountdown(ms){
-  const totalSec=Math.max(0, Math.floor(ms/1000));
-  const h=Math.floor(totalSec/3600);
-  const m=Math.floor((totalSec%3600)/60);
-  const s=totalSec%60;
-  return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
-}
-
-function formatDateShort(date){
-  return date.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric"});
 }
 
 function render(){
@@ -287,40 +278,61 @@ function render(){
     nhEl.textContent="";
   }
 
-  // Status + nächste Öffnung/Countdown
-  const st=statusNow(now);
-  const big=document.getElementById("bigStatus");
-  const detail=document.getElementById("detail");
-  const cd=document.getElementById("countdown");
+  // Status + Details + Countdown
+  const st = statusNow(now);
+  const big = document.getElementById("bigStatus");
+  const detail = document.getElementById("detail");
+  const cd = document.getElementById("countdown");
 
-  if(st.open){
+  const prefix = todayHol ? ("Heute: "+todayHol+" · ") : "";
+
+  if(st.state === "open"){
     big.textContent="GEÖFFNET";
     big.className="bigStatus open";
     cd.style.display="none";
     detail.textContent="Heute bis "+st.until+" Uhr";
-  } else {
-    big.textContent="GESCHLOSSEN";
-    big.className="bigStatus closed";
-
-    const prefix = todayHol ? ("Heute: "+todayHol+" · ") : "";
-    const next=nextOpeningDate(now);
-
-    if(next){
-      const diff=next-now;
-      cd.style.display="block";
-      cd.innerHTML="Öffnet in <strong>"+formatCountdown(diff)+"</strong>";
-
-      const dayLabel = dayNames[next.getDay()];
-      const hh = String(next.getHours()).padStart(2,"0");
-      const mm = String(next.getMinutes()).padStart(2,"0");
-      detail.textContent = prefix + "Nächste Öffnung: "+dayLabel+" "+hh+":"+mm+" Uhr";
-    } else {
-      cd.style.display="none";
-      detail.textContent = prefix + "Derzeit geschlossen";
-    }
+    return;
   }
 
-  // Wochenliste
+  if(st.state === "pause"){
+    big.textContent="MITTAGSPAUSE";
+    big.className="bigStatus pause";
+
+    // Countdown bis Wiedereröffnung heute
+    const resumeMin = toMinutes(st.resumesAt);
+    const resume = new Date(now);
+    resume.setHours(Math.floor(resumeMin/60), resumeMin%60, 0, 0);
+    const diff = resume - now;
+
+    cd.style.display="block";
+    cd.innerHTML="Öffnet wieder in <strong>"+formatCountdown(diff)+"</strong>";
+    detail.textContent="Heute ab "+st.resumesAt+" Uhr wieder geöffnet";
+    return;
+  }
+
+  // closed
+  big.textContent="GESCHLOSSEN";
+  big.className="bigStatus closed";
+
+  const next = nextOpeningDate(now);
+  if(next){
+    const diff = next-now;
+    cd.style.display="block";
+    cd.innerHTML="Öffnet in <strong>"+formatCountdown(diff)+"</strong>";
+
+    const dayLabel = dayNames[next.getDay()];
+    const hh = String(next.getHours()).padStart(2,"0");
+    const mm = String(next.getMinutes()).padStart(2,"0");
+    detail.textContent = prefix + "Nächste Öffnung: "+dayLabel+" "+hh+":"+mm+" Uhr";
+  } else {
+    cd.style.display="none";
+    detail.textContent = prefix + "Derzeit geschlossen";
+  }
+}
+
+// Wochenliste
+function renderWeek(){
+  const now=new Date();
   const list=document.getElementById("hoursList");
   list.innerHTML="";
   for(const i of dayOrder){
@@ -336,6 +348,7 @@ function render(){
   }
 }
 
+renderWeek();
 render();
 setInterval(render,1000);
 </script>
