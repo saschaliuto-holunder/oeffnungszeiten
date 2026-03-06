@@ -534,6 +534,21 @@ function nextOpeningDate(now){
   return null;
 }
 
+function getNextDateForWeekday(baseDate, targetWeekday){
+  const d = new Date(baseDate);
+  d.setHours(0,0,0,0);
+
+  const currentWeekday = d.getDay();
+  let delta = targetWeekday - currentWeekday;
+
+  if(delta < 0){
+    delta += 7;
+  }
+
+  d.setDate(d.getDate() + delta);
+  return d;
+}
+
 function render(){
   const now = new Date();
 
@@ -647,13 +662,7 @@ function renderWeek(){
     const h = document.createElement("div");
     h.className = "hours";
 
-    const today = new Date();
-    today.setHours(0,0,0,0);
-
-    const target = new Date(today);
-    const delta = i - today.getDay();
-    target.setDate(today.getDate() + delta);
-
+    const target = getNextDateForWeekday(now, i);
     const hol = holidayName(target);
 
     if(hol){
