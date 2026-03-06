@@ -69,12 +69,6 @@ header{
   background:#fff
 }
 
-.sub{
-  margin:8px 0 0;
-  color:var(--muted);
-  font-size:13px
-}
-
 .mini{
   border:1px solid var(--line);
   padding:12px;
@@ -207,9 +201,20 @@ header{
 .statusHead{
   display:flex;
   align-items:center;
-  gap:12px;
+  gap:10px;
   flex-wrap:wrap
 }
+
+.bigStatus{
+  font-size:clamp(36px,4vw,54px);
+  font-weight:950;
+  letter-spacing:-.03em;
+  line-height:1.05
+}
+
+.bigStatus.open{color:var(--ok)}
+.bigStatus.closed{color:var(--no)}
+.bigStatus.pause{color:var(--pause)}
 
 .liveDotBtn{
   width:18px;
@@ -273,17 +278,6 @@ header{
   }
 }
 
-.bigStatus{
-  font-size:clamp(36px,4vw,54px);
-  font-weight:950;
-  letter-spacing:-.03em;
-  line-height:1.05
-}
-
-.bigStatus.open{color:var(--ok)}
-.bigStatus.closed{color:var(--no)}
-.bigStatus.pause{color:var(--pause)}
-
 .countdown{
   margin-top:8px;
   font-size:15px;
@@ -306,10 +300,21 @@ header{
   border-top:1px solid var(--line);
   font-size:13px;
   color:var(--muted);
-  line-height:1.5
+  line-height:1.55
 }
 
 .nextHoliday strong{color:var(--text)}
+
+.nextHolidayList{
+  margin-top:6px;
+  display:flex;
+  flex-direction:column;
+  gap:6px
+}
+
+.nextHolidayItem{
+  color:var(--muted)
+}
 
 .contact{
   margin-top:14px;
@@ -386,7 +391,7 @@ header{
   }
 
   .statusHead{
-    gap:10px
+    gap:8px
   }
 
   .liveDotBtn{
@@ -425,7 +430,6 @@ header{
     <header>
       <div class="brand">
         <img src="liutografie-logo.jpg?v=2" alt="Liutografie Logo">
-        <p class="sub">Öffnungszeiten</p>
       </div>
       <div class="mini">
         <div class="clock" id="clock"></div>
@@ -563,16 +567,22 @@ function holidayName(date){
   return holidaysNDS(date.getFullYear()).get(ymd(date)) || null;
 }
 
-function nextHolidayFrom(now){
+function nextHolidaysFrom(now, count = 3){
+  const result = [];
   const start = new Date(now);
   start.setHours(0,0,0,0);
 
-  for(let i = 1; i <= 370; i++){
+  for(let i = 0; i <= 740 && result.length < count; i++){
     const d = addDays(start, i);
     const name = holidayName(d);
-    if(name) return { date:d, name };
+
+    if(!name) continue;
+    if(i === 0 && holidayName(now)) continue;
+
+    result.push({ date:d, name });
   }
-  return null;
+
+  return result;
 }
 
 function statusNow(now){
@@ -704,6 +714,25 @@ function setLiveDot(state){
   btn.className = `liveDotBtn ${state}`;
 }
 
+function renderUpcomingHolidays(now){
+  const items = nextHolidaysFrom(now, 3);
+  const el = document.getElementById("nextHoliday");
+
+  if(!items.length){
+    el.style.display = "none";
+    el.textContent = "";
+    return;
+  }
+
+  const rows = items.map(item => {
+    const dayLabel = dayNames[item.date.getDay()];
+    return `<div class="nextHolidayItem"><strong>${item.name}</strong> · ${dayLabel} · ${formatDateShort(item.date)}</div>`;
+  }).join("");
+
+  el.style.display = "block";
+  el.innerHTML = `<strong>Nächste Feiertage:</strong><div class="nextHolidayList">${rows}</div>`;
+}
+
 function renderStatus(){
   const now = new Date();
 
@@ -726,16 +755,7 @@ function renderStatus(){
     holidayLine.textContent = "";
   }
 
-  const nh = nextHolidayFrom(now);
-  const nhEl = document.getElementById("nextHoliday");
-
-  if(nh){
-    nhEl.style.display = "block";
-    nhEl.innerHTML = `Nächster Feiertag:<br><strong>${nh.name}</strong> · ${dayNames[nh.date.getDay()]} · ${formatDateShort(nh.date)}`;
-  } else {
-    nhEl.style.display = "none";
-    nhEl.textContent = "";
-  }
+  renderUpcomingHolidays(now);
 
   const st = statusNow(now);
   const big = document.getElementById("bigStatus");
