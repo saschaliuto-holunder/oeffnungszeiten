@@ -267,9 +267,18 @@ header{
   }
 
   .shell{max-height:none}
+
   .content{
     display:flex;
     flex-direction:column
+  }
+
+  .content .panel:first-child{
+    order:2;
+  }
+
+  .content .panel:last-child{
+    order:1;
   }
 
   .panel{width:100%}
@@ -352,7 +361,7 @@ header{
         <div class="infoCard">
           <div class="infoTitle">Passbilder & Dokumentenfotos</div>
           <div class="infoText">
-            Wir bieten digitale Passbilder mit QR-Code sowie Passbilder für den Führerschein und andere Dokumente an.
+            Digitale Passbilder mit QR-Code sowie Passbilder für Führerschein und andere Dokumente erhalten Sie direkt bei uns.
           </div>
         </div>
 
