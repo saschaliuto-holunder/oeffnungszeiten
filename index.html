@@ -38,6 +38,7 @@ body{
 .wrap{width:min(1000px,100%)}
 
 .shell{
+  position:relative;
   border:1px solid var(--line);
   background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.04));
   border-radius:var(--radius);
@@ -203,6 +204,75 @@ header{
   min-height:0
 }
 
+.statusHead{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap
+}
+
+.liveDotBtn{
+  width:18px;
+  height:18px;
+  border:none;
+  border-radius:50%;
+  flex:0 0 auto;
+  cursor:pointer;
+  padding:0;
+  background:var(--no);
+  box-shadow:0 0 0 0 rgba(255,77,109,.55);
+  transition:transform .15s ease, filter .15s ease, box-shadow .15s ease;
+  appearance:none;
+  -webkit-appearance:none
+}
+
+.liveDotBtn:hover{
+  transform:scale(1.12);
+  filter:brightness(1.08)
+}
+
+.liveDotBtn:active{
+  transform:scale(.95)
+}
+
+.liveDotBtn:focus-visible{
+  outline:none;
+  box-shadow:
+    0 0 0 3px rgba(255,255,255,.16),
+    0 0 0 6px rgba(46,229,157,.22)
+}
+
+.liveDotBtn.open{
+  background:var(--ok);
+  box-shadow:0 0 0 0 rgba(46,229,157,.55);
+  animation:pulseOpen 1.8s infinite
+}
+
+.liveDotBtn.pause{
+  background:var(--pause);
+  box-shadow:0 0 0 0 rgba(255,211,106,.45)
+}
+
+.liveDotBtn.closed{
+  background:var(--no);
+  box-shadow:0 0 0 0 rgba(255,77,109,.45)
+}
+
+@keyframes pulseOpen{
+  0%{
+    transform:scale(1);
+    box-shadow:0 0 0 0 rgba(46,229,157,.55);
+  }
+  70%{
+    transform:scale(1.08);
+    box-shadow:0 0 0 12px rgba(46,229,157,0);
+  }
+  100%{
+    transform:scale(1);
+    box-shadow:0 0 0 0 rgba(46,229,157,0);
+  }
+}
+
 .bigStatus{
   font-size:clamp(36px,4vw,54px);
   font-weight:950;
@@ -257,7 +327,6 @@ header{
 
 .address{margin-top:6px}
 
-/* Mobile */
 @media (max-width: 720px){
   body{
     display:block;
@@ -316,6 +385,15 @@ header{
     word-break:break-word
   }
 
+  .statusHead{
+    gap:10px
+  }
+
+  .liveDotBtn{
+    width:16px;
+    height:16px
+  }
+
   .bigStatus{
     font-size:clamp(34px,10vw,44px);
     line-height:1.05
@@ -343,7 +421,7 @@ header{
 </head>
 <body>
 <div class="wrap">
-  <div class="shell">
+  <div class="shell" id="appShell">
     <header>
       <div class="brand">
         <img src="liutografie-logo.jpg?v=2" alt="Liutografie Logo">
@@ -371,7 +449,10 @@ header{
       <div class="panel">
         <div class="statusCard">
           <div>
-            <div class="bigStatus closed" id="bigStatus">GESCHLOSSEN</div>
+            <div class="statusHead">
+              <button class="liveDotBtn closed" id="liveDotBtn" aria-label="Vollbild umschalten" title="Vollbild"></button>
+              <div class="bigStatus closed" id="bigStatus">GESCHLOSSEN</div>
+            </div>
             <div class="countdown" id="countdown" style="display:none;"></div>
             <div class="detail" id="detail">—</div>
             <div class="nextHoliday" id="nextHoliday" style="display:none;"></div>
@@ -389,15 +470,14 @@ header{
 </div>
 
 <script>
-/** Öffnungszeiten pro Wochentag: 0=So ... 6=Sa */
 const schedule = {
+  0: [],
   1: [["09:00","13:00"],["15:00","18:30"]],
   2: [["09:00","13:00"],["15:00","18:30"]],
   3: [["09:00","12:00"]],
   4: [["09:00","13:00"],["15:00","18:30"]],
   5: [["09:00","13:00"],["15:00","18:30"]],
-  6: [["09:00","12:00"]],
-  0: []
+  6: [["09:00","12:00"]]
 };
 
 const dayOrder = [1,2,3,4,5,6,0];
@@ -406,7 +486,7 @@ const dayNames = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag
 function toMinutes(hhmm){
   const h = parseInt(hhmm.slice(0,2),10);
   const m = parseInt(hhmm.slice(3,5),10);
-  return h*60 + m;
+  return h * 60 + m;
 }
 
 function ymd(date){
@@ -429,9 +509,7 @@ function formatCountdown(ms){
   const h = Math.floor(totalSec / 3600);
   const m = Math.floor((totalSec % 3600) / 60);
   const s = totalSec % 60;
-  return String(h).padStart(2,"0") + ":" +
-         String(m).padStart(2,"0") + ":" +
-         String(s).padStart(2,"0");
+  return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
 }
 
 function easterSunday(year){
@@ -449,6 +527,7 @@ function easterSunday(year){
   const m = Math.floor((a + 11 * h + 22 * l) / 451);
   const month = Math.floor((h + l - 7 * m + 114) / 31);
   const day = ((h + l - 7 * m + 114) % 31) + 1;
+
   const dt = new Date(year, month - 1, day);
   dt.setHours(0,0,0,0);
   return dt;
@@ -485,26 +564,22 @@ function holidayName(date){
 }
 
 function nextHolidayFrom(now){
-  const base = new Date(now);
-  base.setHours(0,0,0,0);
+  const start = new Date(now);
+  start.setHours(0,0,0,0);
 
-  for(let add = 0; add <= 370; add++){
-    const d = new Date(base);
-    d.setDate(base.getDate() + add);
-    d.setHours(0,0,0,0);
-
-    if(add === 0 && holidayName(now)) continue;
-
+  for(let i = 1; i <= 370; i++){
+    const d = addDays(start, i);
     const name = holidayName(d);
     if(name) return { date:d, name };
   }
-
   return null;
 }
 
 function statusNow(now){
   const hol = holidayName(now);
-  if(hol) return { state:"closed", holiday:hol };
+  if(hol){
+    return { state:"closed", holiday:hol };
+  }
 
   const day = now.getDay();
   const minutes = now.getHours() * 60 + now.getMinutes();
@@ -546,14 +621,13 @@ function nextOpeningDate(now){
 
     const dow = d.getDay();
     const slots = schedule[dow] || [];
-    if(slots.length === 0) continue;
+    if(!slots.length) continue;
 
     if(add === 0){
       const curMin = now.getHours() * 60 + now.getMinutes();
 
       for(const [start] of slots){
-        const s = toMinutes(start);
-        if(s > curMin){
+        if(toMinutes(start) > curMin){
           const n = new Date(now);
           n.setHours(
             parseInt(start.slice(0,2),10),
@@ -561,7 +635,7 @@ function nextOpeningDate(now){
             0,
             0
           );
-          if(!holidayName(n)) return n;
+          return n;
         }
       }
     } else {
@@ -584,37 +658,69 @@ function getNextDateForWeekday(baseDate, targetWeekday){
   const d = new Date(baseDate);
   d.setHours(0,0,0,0);
 
-  const currentWeekday = d.getDay();
-  let delta = targetWeekday - currentWeekday;
-
-  if(delta < 0){
-    delta += 7;
-  }
+  let delta = targetWeekday - d.getDay();
+  if(delta < 0) delta += 7;
 
   d.setDate(d.getDate() + delta);
   return d;
 }
 
-function render(){
+function renderWeek(){
+  const now = new Date();
+  const list = document.getElementById("hoursList");
+  list.innerHTML = "";
+
+  for(const weekday of dayOrder){
+    const row = document.createElement("div");
+    row.className = "row" + (weekday === now.getDay() ? " today" : "");
+
+    const dayEl = document.createElement("div");
+    dayEl.className = "day";
+    dayEl.textContent = dayNames[weekday];
+
+    const hoursEl = document.createElement("div");
+    hoursEl.className = "hours";
+
+    const targetDate = getNextDateForWeekday(now, weekday);
+    const hol = holidayName(targetDate);
+
+    if(hol){
+      hoursEl.classList.add("holiday");
+      hoursEl.textContent = `geschlossen (Feiertag: ${hol})`;
+    } else {
+      hoursEl.textContent = schedule[weekday].length
+        ? schedule[weekday].map(slot => `${slot[0]}–${slot[1]}`).join(" · ")
+        : "geschlossen";
+    }
+
+    row.appendChild(dayEl);
+    row.appendChild(hoursEl);
+    list.appendChild(row);
+  }
+}
+
+function setLiveDot(state){
+  const btn = document.getElementById("liveDotBtn");
+  btn.className = `liveDotBtn ${state}`;
+}
+
+function renderStatus(){
   const now = new Date();
 
-  document.getElementById("clock").textContent =
-    now.toLocaleTimeString("de-DE");
-
-  document.getElementById("date").textContent =
-    now.toLocaleDateString("de-DE", {
-      weekday:"long",
-      day:"2-digit",
-      month:"2-digit",
-      year:"numeric"
-    });
+  document.getElementById("clock").textContent = now.toLocaleTimeString("de-DE");
+  document.getElementById("date").textContent = now.toLocaleDateString("de-DE", {
+    weekday:"long",
+    day:"2-digit",
+    month:"2-digit",
+    year:"numeric"
+  });
 
   const todayHol = holidayName(now);
   const holidayLine = document.getElementById("holidayLine");
 
   if(todayHol){
     holidayLine.style.display = "block";
-    holidayLine.innerHTML = 'Feiertag: <strong>' + todayHol + '</strong>';
+    holidayLine.innerHTML = `Feiertag: <strong>${todayHol}</strong>`;
   } else {
     holidayLine.style.display = "none";
     holidayLine.textContent = "";
@@ -624,11 +730,8 @@ function render(){
   const nhEl = document.getElementById("nextHoliday");
 
   if(nh){
-    const dayLabel = dayNames[nh.date.getDay()];
     nhEl.style.display = "block";
-    nhEl.innerHTML =
-      'Nächster Feiertag:<br><strong>' + nh.name + '</strong> · ' +
-      dayLabel + ' · ' + formatDateShort(nh.date);
+    nhEl.innerHTML = `Nächster Feiertag:<br><strong>${nh.name}</strong> · ${dayNames[nh.date.getDay()]} · ${formatDateShort(nh.date)}`;
   } else {
     nhEl.style.display = "none";
     nhEl.textContent = "";
@@ -639,23 +742,24 @@ function render(){
   const detail = document.getElementById("detail");
   const cd = document.getElementById("countdown");
 
-  const prefix = todayHol ? ("Heute: " + todayHol + " · ") : "";
+  const prefix = todayHol ? `Heute: ${todayHol} · ` : "";
 
   if(st.state === "open"){
+    setLiveDot("open");
     big.textContent = "GEÖFFNET";
     big.className = "bigStatus open";
     cd.style.display = "none";
 
     if(st.resumesAt){
-      detail.textContent =
-        "Heute bis " + st.until + " Uhr · ab " + st.resumesAt + " Uhr wieder geöffnet";
+      detail.textContent = `Heute bis ${st.until} Uhr · ab ${st.resumesAt} Uhr wieder geöffnet`;
     } else {
-      detail.textContent = "Heute bis " + st.until + " Uhr";
+      detail.textContent = `Heute bis ${st.until} Uhr`;
     }
     return;
   }
 
   if(st.state === "pause"){
+    setLiveDot("pause");
     big.textContent = "MITTAGSPAUSE";
     big.className = "bigStatus pause";
 
@@ -663,72 +767,53 @@ function render(){
     const resume = new Date(now);
     resume.setHours(Math.floor(resumeMin / 60), resumeMin % 60, 0, 0);
 
-    const diff = resume - now;
-
     cd.style.display = "block";
-    cd.innerHTML = 'Öffnet wieder in <strong>' + formatCountdown(diff) + '</strong>';
-    detail.textContent = "Heute ab " + st.resumesAt + " Uhr wieder geöffnet";
+    cd.innerHTML = `Öffnet wieder in <strong>${formatCountdown(resume - now)}</strong>`;
+    detail.textContent = `Heute ab ${st.resumesAt} Uhr wieder geöffnet`;
     return;
   }
 
+  setLiveDot("closed");
   big.textContent = "GESCHLOSSEN";
   big.className = "bigStatus closed";
 
   const next = nextOpeningDate(now);
 
   if(next){
-    const diff = next - now;
-    cd.style.display = "block";
-    cd.innerHTML = 'Öffnet in <strong>' + formatCountdown(diff) + '</strong>';
-
-    const dayLabel = dayNames[next.getDay()];
     const hh = String(next.getHours()).padStart(2,"0");
     const mm = String(next.getMinutes()).padStart(2,"0");
 
-    detail.textContent = prefix + "Nächste Öffnung: " + dayLabel + " " + hh + ":" + mm + " Uhr";
+    cd.style.display = "block";
+    cd.innerHTML = `Öffnet in <strong>${formatCountdown(next - now)}</strong>`;
+    detail.textContent = `${prefix}Nächste Öffnung: ${dayNames[next.getDay()]} ${hh}:${mm} Uhr`;
   } else {
     cd.style.display = "none";
-    detail.textContent = prefix + "Derzeit geschlossen";
+    detail.textContent = `${prefix}Derzeit geschlossen`;
   }
 }
 
-function renderWeek(){
-  const now = new Date();
-  const list = document.getElementById("hoursList");
-  list.innerHTML = "";
+function renderAll(){
+  renderWeek();
+  renderStatus();
+}
 
-  for(const i of dayOrder){
-    const row = document.createElement("div");
-    row.className = "row" + (i === now.getDay() ? " today" : "");
-
-    const l = document.createElement("div");
-    l.className = "day";
-    l.textContent = dayNames[i];
-
-    const h = document.createElement("div");
-    h.className = "hours";
-
-    const target = getNextDateForWeekday(now, i);
-    const hol = holidayName(target);
-
-    if(hol){
-      h.classList.add("holiday");
-      h.textContent = "geschlossen (Feiertag: " + hol + ")";
+async function toggleFullscreen(){
+  try{
+    if(!document.fullscreenElement){
+      await document.documentElement.requestFullscreen();
     } else {
-      h.textContent = schedule[i].length
-        ? schedule[i].map(s => s[0] + "–" + s[1]).join(" · ")
-        : "geschlossen";
+      await document.exitFullscreen();
     }
-
-    row.appendChild(l);
-    row.appendChild(h);
-    list.appendChild(row);
+  } catch(err){
+    console.error("Vollbild fehlgeschlagen:", err);
   }
 }
 
-renderWeek();
-render();
-setInterval(render, 1000);
+document.getElementById("liveDotBtn").addEventListener("click", toggleFullscreen);
+
+renderAll();
+setInterval(renderStatus, 1000);
+setInterval(renderWeek, 60000);
 </script>
 </body>
 </html>
