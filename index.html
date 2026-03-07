@@ -125,7 +125,7 @@ header{
 }
 
 .infoCard{
-  margin-bottom:14px;
+  margin-top:14px;
   padding:14px 16px;
   border:1px solid rgba(125,207,255,.28);
   border-radius:16px;
@@ -323,28 +323,6 @@ header{
   line-height:1.35
 }
 
-.nextHoliday{
-  margin-top:12px;
-  padding-top:12px;
-  border-top:1px solid var(--line);
-  font-size:13px;
-  color:var(--muted);
-  line-height:1.55
-}
-
-.nextHoliday strong{color:var(--text)}
-
-.nextHolidayList{
-  margin-top:6px;
-  display:flex;
-  flex-direction:column;
-  gap:6px
-}
-
-.nextHolidayItem{
-  color:var(--muted)
-}
-
 .impressum{
   margin-top:14px;
   padding-top:14px;
@@ -450,7 +428,7 @@ header{
   .statusCard{height:auto}
 
   .infoCard{
-    margin-bottom:12px
+    margin-top:12px
   }
 
   .infoText{
@@ -475,13 +453,6 @@ header{
 
     <div class="content">
       <div class="panel">
-        <div class="infoCard">
-          <div class="infoTitle">Passbilder & Dokumentenfotos</div>
-          <div class="infoText">
-            Digitale Passbilder mit QR-Code sowie Passbilder für Führerschein und andere Dokumente erhalten Sie direkt bei uns.
-          </div>
-        </div>
-
         <div class="list" id="hoursList"></div>
       </div>
 
@@ -494,7 +465,13 @@ header{
             </div>
             <div class="countdown" id="countdown" style="display:none;"></div>
             <div class="detail" id="detail">—</div>
-            <div class="nextHoliday" id="nextHoliday" style="display:none;"></div>
+
+            <div class="infoCard">
+              <div class="infoTitle">Passbilder & Dokumentenfotos</div>
+              <div class="infoText">
+                Digitale Passbilder mit QR-Code sowie Passbilder für Führerschein und andere Dokumente erhalten Sie direkt bei uns.
+              </div>
+            </div>
           </div>
 
           <div class="impressum">
@@ -536,14 +513,6 @@ function ymd(date){
   const m = String(date.getMonth() + 1).padStart(2,"0");
   const d = String(date.getDate()).padStart(2,"0");
   return `${y}-${m}-${d}`;
-}
-
-function formatDateShort(date){
-  return date.toLocaleDateString("de-DE", {
-    day:"2-digit",
-    month:"2-digit",
-    year:"numeric"
-  });
 }
 
 function formatCountdown(ms){
@@ -603,24 +572,6 @@ function holidaysNDS(year){
 
 function holidayName(date){
   return holidaysNDS(date.getFullYear()).get(ymd(date)) || null;
-}
-
-function nextHolidaysFrom(now, count = 3){
-  const result = [];
-  const start = new Date(now);
-  start.setHours(0,0,0,0);
-
-  for(let i = 0; i <= 740 && result.length < count; i++){
-    const d = addDays(start, i);
-    const name = holidayName(d);
-
-    if(!name) continue;
-    if(i === 0 && holidayName(now)) continue;
-
-    result.push({ date:d, name });
-  }
-
-  return result;
 }
 
 function statusNow(now){
@@ -752,25 +703,6 @@ function setLiveDot(state){
   btn.className = `liveDotBtn ${state}`;
 }
 
-function renderUpcomingHolidays(now){
-  const items = nextHolidaysFrom(now, 3);
-  const el = document.getElementById("nextHoliday");
-
-  if(!items.length){
-    el.style.display = "none";
-    el.textContent = "";
-    return;
-  }
-
-  const rows = items.map(item => {
-    const dayLabel = dayNames[item.date.getDay()];
-    return `<div class="nextHolidayItem"><strong>${item.name}</strong> · ${dayLabel} · ${formatDateShort(item.date)}</div>`;
-  }).join("");
-
-  el.style.display = "block";
-  el.innerHTML = `<strong>Nächste Feiertage:</strong><div class="nextHolidayList">${rows}</div>`;
-}
-
 function renderStatus(){
   const now = new Date();
 
@@ -792,8 +724,6 @@ function renderStatus(){
     holidayLine.style.display = "none";
     holidayLine.textContent = "";
   }
-
-  renderUpcomingHolidays(now);
 
   const st = statusNow(now);
   const big = document.getElementById("bigStatus");
