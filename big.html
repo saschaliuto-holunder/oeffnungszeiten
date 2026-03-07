@@ -1,0 +1,553 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Status – Liutografie</title>
+<style>
+:root{
+  --bg0:#050806;
+  --bg1:#0d1410;
+  --text:rgba(255,255,255,.96);
+  --muted:rgba(255,255,255,.74);
+  --line:rgba(255,255,255,.10);
+  --ok:#2ee59d;
+  --no:#ff4d6d;
+  --pause:#ffd36a;
+  --shadow:0 30px 80px rgba(0,0,0,.55);
+  --radius:28px;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  color:var(--text);
+  background:
+    radial-gradient(1100px 800px at 20% 0%, rgba(46,229,157,.16), transparent 60%),
+    radial-gradient(950px 750px at 85% 12%, rgba(255,77,109,.12), transparent 60%),
+    linear-gradient(180deg,var(--bg0),var(--bg1));
+  overflow:hidden;
+}
+
+.screen{
+  min-height:100svh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+}
+
+.card{
+  width:min(1400px,100%);
+  min-height:calc(100svh - 48px);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.03));
+  box-shadow:var(--shadow);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:40px 36px;
+  gap:24px;
+}
+
+.logoWrap{
+  width:min(760px,90%);
+}
+
+.logoWrap img{
+  width:100%;
+  max-height:180px;
+  object-fit:contain;
+  display:block;
+  margin:0 auto;
+  border-radius:18px;
+  background:#fff;
+}
+
+.statusHead{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:20px;
+  flex-wrap:nowrap;
+}
+
+.liveDotBtn{
+  width:30px;
+  height:30px;
+  border:none;
+  border-radius:50%;
+  flex:0 0 auto;
+  cursor:pointer;
+  padding:0;
+  background:var(--no);
+  box-shadow:0 0 0 0 rgba(255,77,109,.55);
+  transition:transform .15s ease, filter .15s ease;
+  appearance:none;
+  -webkit-appearance:none;
+}
+
+.liveDotBtn:hover{
+  transform:scale(1.1);
+  filter:brightness(1.08);
+}
+
+.liveDotBtn:active{
+  transform:scale(.96);
+}
+
+.liveDotBtn:focus-visible{
+  outline:none;
+  box-shadow:
+    0 0 0 4px rgba(255,255,255,.15),
+    0 0 0 8px rgba(46,229,157,.22);
+}
+
+.liveDotBtn.open{
+  background:var(--ok);
+  animation:pulseGreen 1.8s infinite;
+}
+
+.liveDotBtn.pause{
+  background:var(--pause);
+  animation:pulseYellow 1.8s infinite;
+}
+
+.liveDotBtn.closed{
+  background:var(--no);
+  animation:pulseRed 1.8s infinite;
+}
+
+@keyframes pulseGreen{
+  0%{ transform:scale(1); box-shadow:0 0 0 0 rgba(46,229,157,.55); }
+  70%{ transform:scale(1.08); box-shadow:0 0 0 20px rgba(46,229,157,0); }
+  100%{ transform:scale(1); box-shadow:0 0 0 0 rgba(46,229,157,0); }
+}
+@keyframes pulseYellow{
+  0%{ transform:scale(1); box-shadow:0 0 0 0 rgba(255,211,106,.55); }
+  70%{ transform:scale(1.08); box-shadow:0 0 0 20px rgba(255,211,106,0); }
+  100%{ transform:scale(1); box-shadow:0 0 0 0 rgba(255,211,106,0); }
+}
+@keyframes pulseRed{
+  0%{ transform:scale(1); box-shadow:0 0 0 0 rgba(255,77,109,.55); }
+  70%{ transform:scale(1.08); box-shadow:0 0 0 20px rgba(255,77,109,0); }
+  100%{ transform:scale(1); box-shadow:0 0 0 0 rgba(255,77,109,0); }
+}
+
+.bigStatus{
+  font-size:clamp(52px,9vw,130px);
+  font-weight:950;
+  letter-spacing:-.04em;
+  line-height:.95;
+  margin:0;
+}
+
+.bigStatus.open{color:var(--ok)}
+.bigStatus.closed{color:var(--no)}
+.bigStatus.pause{color:var(--pause)}
+
+.meta{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  align-items:center;
+}
+
+.clock{
+  font-size:clamp(34px,5vw,72px);
+  font-weight:950;
+  font-variant-numeric:tabular-nums;
+  letter-spacing:-.03em;
+  line-height:1;
+}
+
+.date{
+  font-size:clamp(18px,2vw,30px);
+  font-weight:760;
+  color:var(--text);
+  line-height:1.3;
+}
+
+.holiday{
+  font-size:clamp(14px,1.2vw,20px);
+  color:var(--muted);
+  line-height:1.35;
+  min-height:1.4em;
+}
+
+.countdown{
+  margin-top:8px;
+  font-size:clamp(20px,2.2vw,34px);
+  color:var(--muted);
+  font-variant-numeric:tabular-nums;
+  line-height:1.3;
+}
+
+.countdown strong{
+  color:var(--text);
+}
+
+.detail{
+  font-size:clamp(20px,2vw,34px);
+  font-weight:850;
+  line-height:1.3;
+  max-width:1000px;
+}
+
+@media (max-width: 720px){
+  .screen{
+    padding:12px;
+  }
+
+  .card{
+    min-height:calc(100svh - 24px);
+    padding:22px 16px;
+    gap:18px;
+    border-radius:20px;
+  }
+
+  .logoWrap{
+    width:min(92%,520px);
+  }
+
+  .logoWrap img{
+    max-height:110px;
+  }
+
+  .statusHead{
+    gap:12px;
+  }
+
+  .liveDotBtn{
+    width:20px;
+    height:20px;
+  }
+
+  .bigStatus{
+    font-size:clamp(34px,11vw,64px);
+  }
+
+  .clock{
+    font-size:clamp(26px,9vw,46px);
+  }
+
+  .date{
+    font-size:clamp(15px,4.4vw,22px);
+  }
+
+  .holiday{
+    font-size:13px;
+  }
+
+  .countdown{
+    font-size:clamp(16px,5vw,24px);
+  }
+
+  .detail{
+    font-size:clamp(16px,4.8vw,24px);
+  }
+}
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="card">
+    <div class="logoWrap">
+      <img src="liutografie-logo.jpg?v=2" alt="Liutografie Logo">
+    </div>
+
+    <div class="statusHead">
+      <button class="liveDotBtn closed" id="liveDotBtn" aria-label="Vollbild umschalten" title="Vollbild"></button>
+      <div class="bigStatus closed" id="bigStatus">GESCHLOSSEN</div>
+    </div>
+
+    <div class="meta">
+      <div class="clock" id="digitalClock"></div>
+      <div class="date" id="date"></div>
+      <div class="holiday" id="holidayLine"></div>
+    </div>
+
+    <div class="countdown" id="countdown" style="display:none;"></div>
+    <div class="detail" id="detail">—</div>
+  </div>
+</div>
+
+<script>
+const schedule = {
+  0: [],
+  1: [["09:00","13:00"],["15:00","18:30"]],
+  2: [["09:00","13:00"],["15:00","18:30"]],
+  3: [["09:00","12:00"]],
+  4: [["09:00","13:00"],["15:00","18:30"]],
+  5: [["09:00","13:00"],["15:00","18:30"]],
+  6: [["09:00","12:00"]]
+};
+
+const dayNames = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag"];
+
+function toMinutes(hhmm){
+  const h = parseInt(hhmm.slice(0,2),10);
+  const m = parseInt(hhmm.slice(3,5),10);
+  return h * 60 + m;
+}
+
+function ymd(date){
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2,"0");
+  const d = String(date.getDate()).padStart(2,"0");
+  return `${y}-${m}-${d}`;
+}
+
+function formatCountdown(ms){
+  const totalSec = Math.max(0, Math.floor(ms / 1000));
+  const hours = Math.floor(totalSec / 3600);
+  const minutes = Math.floor((totalSec % 3600) / 60);
+  const seconds = totalSec % 60;
+
+  return `${String(hours).padStart(2,"0")}:${String(minutes).padStart(2,"0")}:${String(seconds).padStart(2,"0")}`;
+}
+
+function easterSunday(year){
+  const a = year % 19;
+  const b = Math.floor(year / 100);
+  const c = year % 100;
+  const d = Math.floor(b / 4);
+  const e = b % 4;
+  const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4);
+  const k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31);
+  const day = ((h + l - 7 * m + 114) % 31) + 1;
+
+  const dt = new Date(year, month - 1, day);
+  dt.setHours(0,0,0,0);
+  return dt;
+}
+
+function addDays(date, n){
+  const d = new Date(date);
+  d.setDate(d.getDate() + n);
+  d.setHours(0,0,0,0);
+  return d;
+}
+
+function holidaysNDS(year){
+  const map = new Map();
+
+  map.set(`${year}-01-01`, "Neujahr");
+  map.set(`${year}-05-01`, "Tag der Arbeit");
+  map.set(`${year}-10-03`, "Tag der Deutschen Einheit");
+  map.set(`${year}-10-31`, "Reformationstag");
+  map.set(`${year}-12-25`, "1. Weihnachtstag");
+  map.set(`${year}-12-26`, "2. Weihnachtstag");
+
+  const easter = easterSunday(year);
+  map.set(ymd(addDays(easter, -2)), "Karfreitag");
+  map.set(ymd(addDays(easter, 1)), "Ostermontag");
+  map.set(ymd(addDays(easter, 39)), "Christi Himmelfahrt");
+  map.set(ymd(addDays(easter, 50)), "Pfingstmontag");
+
+  return map;
+}
+
+function holidayName(date){
+  return holidaysNDS(date.getFullYear()).get(ymd(date)) || null;
+}
+
+function updateClock(now){
+  document.getElementById("digitalClock").textContent = now.toLocaleTimeString("de-DE", {
+    hour:"2-digit",
+    minute:"2-digit",
+    second:"2-digit"
+  });
+}
+
+function statusNow(now){
+  const hol = holidayName(now);
+  if(hol){
+    return { state:"closed", holiday:hol };
+  }
+
+  const day = now.getDay();
+  const minutes = now.getHours() * 60 + now.getMinutes();
+  const slots = schedule[day] || [];
+
+  for(let idx = 0; idx < slots.length; idx++){
+    const [start, end] = slots[idx];
+    const s = toMinutes(start);
+    const e = toMinutes(end);
+
+    if(minutes >= s && minutes < e){
+      const nextSlot = slots[idx + 1];
+      if(nextSlot){
+        return { state:"open", until:end, resumesAt:nextSlot[0] };
+      }
+      return { state:"open", until:end };
+    }
+  }
+
+  if(slots.length >= 2){
+    const firstEnd = toMinutes(slots[0][1]);
+    const secondStart = toMinutes(slots[1][0]);
+
+    if(minutes >= firstEnd && minutes < secondStart){
+      return { state:"pause", resumesAt:slots[1][0] };
+    }
+  }
+
+  return { state:"closed" };
+}
+
+function nextOpeningDate(now){
+  for(let add = 0; add <= 14; add++){
+    const d = new Date(now);
+    d.setDate(now.getDate() + add);
+    d.setHours(0,0,0,0);
+
+    if(holidayName(d)) continue;
+
+    const dow = d.getDay();
+    const slots = schedule[dow] || [];
+    if(!slots.length) continue;
+
+    if(add === 0){
+      const curMin = now.getHours() * 60 + now.getMinutes();
+
+      for(const [start] of slots){
+        if(toMinutes(start) > curMin){
+          const n = new Date(now);
+          n.setHours(
+            parseInt(start.slice(0,2),10),
+            parseInt(start.slice(3,5),10),
+            0,
+            0
+          );
+          return n;
+        }
+      }
+    } else {
+      const [start] = slots[0];
+      const n = new Date(d);
+      n.setHours(
+        parseInt(start.slice(0,2),10),
+        parseInt(start.slice(3,5),10),
+        0,
+        0
+      );
+      return n;
+    }
+  }
+
+  return null;
+}
+
+function setLiveDot(state){
+  const btn = document.getElementById("liveDotBtn");
+  btn.className = `liveDotBtn ${state}`;
+}
+
+function renderStatus(){
+  const now = new Date();
+
+  updateClock(now);
+
+  document.getElementById("date").textContent = now.toLocaleDateString("de-DE", {
+    weekday:"long",
+    day:"2-digit",
+    month:"long",
+    year:"numeric"
+  });
+
+  const todayHol = holidayName(now);
+  const holidayLine = document.getElementById("holidayLine");
+
+  if(todayHol){
+    holidayLine.innerHTML = `Feiertag: <strong>${todayHol}</strong>`;
+  } else {
+    holidayLine.textContent = "";
+  }
+
+  const st = statusNow(now);
+  const big = document.getElementById("bigStatus");
+  const detail = document.getElementById("detail");
+  const cd = document.getElementById("countdown");
+
+  const prefix = todayHol ? `Heute: ${todayHol} · ` : "";
+
+  if(st.state === "open"){
+    setLiveDot("open");
+    big.textContent = "GEÖFFNET";
+    big.className = "bigStatus open";
+    cd.style.display = "none";
+
+    if(st.resumesAt){
+      detail.textContent = `Heute bis ${st.until} Uhr · ab ${st.resumesAt} Uhr wieder geöffnet`;
+    } else {
+      detail.textContent = `Heute bis ${st.until} Uhr`;
+    }
+    return;
+  }
+
+  if(st.state === "pause"){
+    setLiveDot("pause");
+    big.textContent = "MITTAGSPAUSE";
+    big.className = "bigStatus pause";
+
+    const resumeMin = toMinutes(st.resumesAt);
+    const resume = new Date(now);
+    resume.setHours(Math.floor(resumeMin / 60), resumeMin % 60, 0, 0);
+
+    cd.style.display = "block";
+    cd.innerHTML = `Öffnet wieder in <strong>${formatCountdown(resume - now)}</strong>`;
+    detail.textContent = `Heute ab ${st.resumesAt} Uhr wieder geöffnet`;
+    return;
+  }
+
+  setLiveDot("closed");
+  big.textContent = "GESCHLOSSEN";
+  big.className = "bigStatus closed";
+
+  const next = nextOpeningDate(now);
+
+  if(next){
+    const hh = String(next.getHours()).padStart(2,"0");
+    const mm = String(next.getMinutes()).padStart(2,"0");
+
+    cd.style.display = "block";
+    cd.innerHTML = `Öffnet in <strong>${formatCountdown(next - now)}</strong>`;
+    detail.textContent = `${prefix}Nächste Öffnung: ${dayNames[next.getDay()]} ${hh}:${mm} Uhr`;
+  } else {
+    cd.style.display = "none";
+    detail.textContent = `${prefix}Derzeit geschlossen`;
+  }
+}
+
+async function toggleFullscreen(){
+  try{
+    if(!document.fullscreenElement){
+      await document.documentElement.requestFullscreen();
+    } else {
+      await document.exitFullscreen();
+    }
+  } catch(err){
+    console.error("Vollbild fehlgeschlagen:", err);
+  }
+}
+
+document.getElementById("liveDotBtn").addEventListener("click", toggleFullscreen);
+
+renderStatus();
+setInterval(renderStatus, 1000);
+</script>
+</body>
+</html>
