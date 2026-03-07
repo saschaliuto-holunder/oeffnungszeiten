@@ -226,7 +226,7 @@ header{
   padding:0;
   background:var(--no);
   box-shadow:0 0 0 0 rgba(255,77,109,.55);
-  transition:transform .15s ease, filter .15s ease, box-shadow .15s ease;
+  transition:transform .15s ease, filter .15s ease;
   appearance:none;
   -webkit-appearance:none
 }
@@ -249,21 +249,20 @@ header{
 
 .liveDotBtn.open{
   background:var(--ok);
-  box-shadow:0 0 0 0 rgba(46,229,157,.55);
-  animation:pulseOpen 1.8s infinite
+  animation:pulseGreen 1.8s infinite
 }
 
 .liveDotBtn.pause{
   background:var(--pause);
-  box-shadow:0 0 0 0 rgba(255,211,106,.45)
+  animation:pulseYellow 1.8s infinite
 }
 
 .liveDotBtn.closed{
   background:var(--no);
-  box-shadow:0 0 0 0 rgba(255,77,109,.45)
+  animation:pulseRed 1.8s infinite
 }
 
-@keyframes pulseOpen{
+@keyframes pulseGreen{
   0%{
     transform:scale(1);
     box-shadow:0 0 0 0 rgba(46,229,157,.55);
@@ -275,6 +274,36 @@ header{
   100%{
     transform:scale(1);
     box-shadow:0 0 0 0 rgba(46,229,157,0);
+  }
+}
+
+@keyframes pulseYellow{
+  0%{
+    transform:scale(1);
+    box-shadow:0 0 0 0 rgba(255,211,106,.55);
+  }
+  70%{
+    transform:scale(1.08);
+    box-shadow:0 0 0 12px rgba(255,211,106,0);
+  }
+  100%{
+    transform:scale(1);
+    box-shadow:0 0 0 0 rgba(255,211,106,0);
+  }
+}
+
+@keyframes pulseRed{
+  0%{
+    transform:scale(1);
+    box-shadow:0 0 0 0 rgba(255,77,109,.55);
+  }
+  70%{
+    transform:scale(1.08);
+    box-shadow:0 0 0 12px rgba(255,77,109,0);
+  }
+  100%{
+    transform:scale(1);
+    box-shadow:0 0 0 0 rgba(255,77,109,0);
   }
 }
 
