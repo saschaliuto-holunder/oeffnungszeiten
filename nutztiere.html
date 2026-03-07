@@ -1,0 +1,616 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nutztier-Zähler (DE)</title>
+  <style>
+    :root{
+      --bg:#05060a;
+      --fg:#f2f3f7;
+      --muted:#a9afc3;
+      --muted2:#7f879f;
+      --line:#202641;
+      --line2:#2f3866;
+      --accent:#b7c6ff;
+    }
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      background:
+        radial-gradient(1200px 700px at 68% 35%, rgba(48,64,130,0.35) 0%, rgba(5,6,10,0) 60%),
+        radial-gradient(900px 500px at 20% 70%, rgba(183,198,255,0.14) 0%, rgba(5,6,10,0) 62%),
+        var(--bg);
+      color:var(--fg);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: geometricPrecision;
+      overflow:hidden;
+    }
+
+    .stage{
+      height:100%;
+      padding: clamp(16px, 2.2vw, 28px);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .frame{
+      width:min(1400px, 100%);
+      height:min(680px, 100%);
+      display:grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: clamp(12px, 1.8vw, 18px);
+    }
+    @media (max-width: 980px){
+      body{ overflow:auto; }
+      .frame{
+        grid-template-columns: 1fr;
+        height:auto;
+      }
+    }
+
+    .panel{
+      border:1px solid var(--line);
+      border-radius: 26px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+      box-shadow: 0 18px 60px rgba(0,0,0,0.55);
+      padding: clamp(16px, 2.2vw, 26px);
+      min-width:0;
+    }
+
+    .top{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+      border-bottom: 1px solid rgba(32,38,65,0.8);
+      padding-bottom: 12px;
+      margin-bottom: 14px;
+    }
+    .brand{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      min-width: 240px;
+    }
+    .brand h1{
+      margin:0;
+      font-size: clamp(15px, 1.4vw, 18px);
+      font-weight: 900;
+      letter-spacing: -0.01em;
+    }
+    .brand .sub{
+      color: var(--muted2);
+      font-size: 12px;
+      line-height: 1.3;
+    }
+    .chip{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line2);
+      background: rgba(0,0,0,0.22);
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .dot{
+      width:8px;
+      height:8px;
+      border-radius:999px;
+      background: rgba(183,198,255,0.95);
+      box-shadow: 0 0 0 4px rgba(183,198,255,0.16);
+      display:inline-block;
+    }
+
+    .label{
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+    }
+    .big{
+      margin: 10px 0 10px;
+      font-size: clamp(64px, 7.5vw, 168px);
+      font-weight: 950;
+      letter-spacing: -0.045em;
+      line-height: 0.95;
+      font-variant-numeric: tabular-nums;
+      text-shadow: 0 22px 60px rgba(0,0,0,0.7);
+      transform: translateZ(0);
+      user-select:none;
+    }
+    .meta{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top: 8px;
+      color: var(--muted2);
+      font-size: 12px;
+    }
+    .meta .chip{
+      padding: 6px 10px;
+    }
+
+    .grid{
+      margin-top: 16px;
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .tile{
+      border:1px solid rgba(47,56,102,0.9);
+      border-radius: 20px;
+      background: rgba(0,0,0,0.22);
+      padding: 14px 14px 12px;
+      min-height: 112px;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      min-width:0;
+    }
+    .tile .k{
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-weight: 900;
+    }
+    .tile .v{
+      margin-top: 8px;
+      font-size: clamp(22px, 2.2vw, 32px);
+      font-weight: 950;
+      font-variant-numeric: tabular-nums;
+      transform: translateZ(0);
+      user-select:none;
+      color: var(--fg);
+    }
+    .tile .hint{
+      margin-top: 6px;
+      color: var(--muted2);
+      font-size: 12px;
+      line-height: 1.25;
+    }
+
+    @keyframes numberGlow {
+      0% {
+        color: var(--fg);
+        filter: brightness(1);
+        text-shadow:
+          0 0 0 rgba(255, 60, 60, 0),
+          0 0 0 rgba(255, 60, 60, 0),
+          0 0 0 rgba(255, 60, 60, 0);
+      }
+      30% {
+        color: #ff6b6b;
+        filter: brightness(1.35);
+        text-shadow:
+          0 0 8px rgba(255, 50, 50, 0.95),
+          0 0 18px rgba(255, 50, 50, 0.65),
+          0 0 34px rgba(255, 50, 50, 0.35);
+      }
+      100% {
+        color: var(--fg);
+        filter: brightness(1);
+        text-shadow:
+          0 0 0 rgba(255, 60, 60, 0),
+          0 0 0 rgba(255, 60, 60, 0),
+          0 0 0 rgba(255, 60, 60, 0);
+      }
+    }
+
+    .glow-once{
+      animation: numberGlow 0.42s ease-out;
+    }
+
+    .controls{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    .box{
+      border:1px solid rgba(47,56,102,0.85);
+      border-radius: 20px;
+      background: rgba(0,0,0,0.22);
+      padding: 14px;
+    }
+    .box h2{
+      margin:0 0 10px;
+      font-size: 13px;
+      color: var(--muted);
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+      font-weight: 900;
+    }
+    .row{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:center;
+      padding: 10px 10px;
+      border:1px solid rgba(47,56,102,0.6);
+      border-radius: 16px;
+      background: rgba(0,0,0,0.18);
+      margin-top: 10px;
+    }
+    .row .name{
+      font-weight: 850;
+      letter-spacing: -0.01em;
+    }
+    .row .val{
+      font-weight: 950;
+      font-variant-numeric: tabular-nums;
+      color: var(--fg);
+      white-space:nowrap;
+    }
+    .row .small{
+      display:block;
+      margin-top: 3px;
+      color: var(--muted2);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .actions{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    label{
+      display:block;
+      margin-bottom:6px;
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-weight: 900;
+    }
+    select, button{
+      width:100%;
+      padding: 11px 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(47,56,102,0.9);
+      background: rgba(0,0,0,0.22);
+      color: var(--fg);
+      outline:none;
+      font-weight: 850;
+    }
+    button{
+      cursor:pointer;
+      background: linear-gradient(180deg, rgba(183,198,255,0.18), rgba(183,198,255,0.08));
+    }
+    button[disabled]{
+      cursor:not-allowed;
+      opacity:0.45;
+      filter:saturate(0.6);
+    }
+    .note{
+      margin-top: 10px;
+      color: var(--muted2);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+    .link{
+      color: var(--accent);
+      text-decoration:none;
+      border-bottom: 1px dashed rgba(183,198,255,0.55);
+      white-space:nowrap;
+    }
+    .link:hover{ border-bottom-style: solid; }
+  </style>
+</head>
+
+<body>
+  <div class="stage">
+    <div class="frame">
+      <section class="panel">
+        <div class="top">
+          <div class="brand">
+            <h1>Nutztier-Zähler (Deutschland)</h1>
+            <div class="sub">Echtzeit-Hochrechnung aus Jahresstatistiken (keine Live-Messung).</div>
+          </div>
+          <div class="chip" id="modeChip"><span class="dot"></span> Hochrechnung · seit Jahresbeginn</div>
+        </div>
+
+        <div class="label">Geschätzt getötet</div>
+        <div class="big" id="total">0</div>
+
+        <div class="meta">
+          <span class="chip">Ø <span id="rate">0</span> Tiere/Sekunde</span>
+          <span class="chip">Referenzjahr: <span id="yearRef">2025</span></span>
+        </div>
+
+        <div class="grid">
+          <div class="tile">
+            <div>
+              <div class="k">Geflügel</div>
+              <div class="v" id="count_poultry">0</div>
+            </div>
+            <div class="hint">Hühner, Puten, Enten (zusammen)</div>
+          </div>
+
+          <div class="tile">
+            <div>
+              <div class="k">Schweine</div>
+              <div class="v" id="count_pigs">0</div>
+            </div>
+            <div class="hint">größter Block bei Säugetieren</div>
+          </div>
+
+          <div class="tile">
+            <div>
+              <div class="k">Rinder (ohne Kälber)</div>
+              <div class="v" id="count_cattle">0</div>
+            </div>
+            <div class="hint">Rinder minus Kälber</div>
+          </div>
+
+          <div class="tile">
+            <div>
+              <div class="k">Kälber</div>
+              <div class="v" id="count_calves">0</div>
+            </div>
+            <div class="hint">Default: Anteilsschätzung (siehe rechts)</div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="panel">
+        <div class="controls">
+          <div class="box">
+            <h2>Anzeige</h2>
+            <div>
+              <label for="mode">Startpunkt</label>
+              <select id="mode">
+                <option value="year">Seit Jahresbeginn</option>
+                <option value="open">Seit Seitenaufruf</option>
+              </select>
+            </div>
+
+            <div class="actions">
+              <button id="reset" disabled title="Reset funktioniert nur im Modus 'Seit Seitenaufruf'">Reset</button>
+              <button id="fullscreen" title="Vollbild (oder F11)">Vollbild</button>
+            </div>
+
+            <div class="note" id="resetNote">
+              Im Modus „Seit Jahresbeginn“ ist Reset deaktiviert (Start ist 1. Januar).<br>
+              Stell auf „Seit Seitenaufruf“, dann setzt Reset den Startpunkt auf „jetzt“.
+            </div>
+          </div>
+
+          <div class="box">
+            <h2>Datenbasis (read-only)</h2>
+
+            <div class="row">
+              <div>
+                <span class="name">Geflügel/Jahr</span>
+                <span class="small">2025 (vorläufig)</span>
+              </div>
+              <div class="val" id="annual_poultry">—</div>
+            </div>
+
+            <div class="row">
+              <div>
+                <span class="name">Schweine/Jahr</span>
+                <span class="small">2025 (vorläufig)</span>
+              </div>
+              <div class="val" id="annual_pigs">—</div>
+            </div>
+
+            <div class="row">
+              <div>
+                <span class="name">Rinder inkl. Kälber/Jahr</span>
+                <span class="small">2025 (vorläufig)</span>
+              </div>
+              <div class="val" id="annual_cattle_total">—</div>
+            </div>
+
+            <div class="row">
+              <div>
+                <span class="name">Kälber/Jahr</span>
+                <span class="small">Schätzung (2023-Anteil)</span>
+              </div>
+              <div class="val" id="annual_calves">—</div>
+            </div>
+
+            <div class="note">
+              Kälber sind in der 2025-Kurzmeldung oft nicht separat ausgewiesen; Default hier ist eine Schätzung über den 2023-Anteil.
+              Wenn du eine offizielle 2025-Kälberzahl hast, kann ich die fest einbauen.
+            </div>
+
+            <div class="note">
+              Quellen:
+              <a class="link" href="https://www.destatis.de/DE/Themen/Branchen-Unternehmen/Landwirtschaft-Forstwirtschaft-Fischerei/Tiere-Tierische-Erzeugung/_inhalt.html" target="_blank" rel="noreferrer">Destatis Übersicht</a>
+              ·
+              <a class="link" href="https://www.destatis.de/DE/Themen/Branchen-Unternehmen/Landwirtschaft-Forstwirtschaft-Fischerei/Tiere-Tierische-Erzeugung/Tabellen/gewerbliche-schlachtung-jahr-halbjahr.html" target="_blank" rel="noreferrer">Destatis Tabelle</a>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+
+  const YEAR_REF = 2025;
+  const ANNUAL = {
+    poultry: 697300000,
+    pigs: 44900000,
+    cattle_total: 2800000,
+    calves: 276000,
+  };
+  ANNUAL.cattle = Math.max(0, ANNUAL.cattle_total - ANNUAL.calves);
+
+  $("yearRef").textContent = String(YEAR_REF);
+  $("annual_poultry").textContent = ANNUAL.poultry.toLocaleString("de-DE");
+  $("annual_pigs").textContent = ANNUAL.pigs.toLocaleString("de-DE");
+  $("annual_cattle_total").textContent = ANNUAL.cattle_total.toLocaleString("de-DE");
+  $("annual_calves").textContent = ANNUAL.calves.toLocaleString("de-DE");
+
+  const modeEl = $("mode");
+  const resetBtn = $("reset");
+  const resetNote = $("resetNote");
+  const modeChip = $("modeChip");
+  const fullscreenBtn = $("fullscreen");
+
+  const totalEl = $("total");
+  const rateEl = $("rate");
+  const counts = {
+    poultry: $("count_poultry"),
+    pigs: $("count_pigs"),
+    cattle: $("count_cattle"),
+    calves: $("count_calves"),
+  };
+
+  const dynamicNumberEls = {
+    total: totalEl,
+    poultry: counts.poultry,
+    pigs: counts.pigs,
+    cattle: counts.cattle,
+    calves: counts.calves,
+  };
+
+  let openStart = performance.now();
+
+  let last = { total:"", rate:"", chip:"" };
+  let lastCounts = { poultry:"", pigs:"", cattle:"", calves:"" };
+
+  let hundredSteps = {
+    total: -1,
+    poultry: -1,
+    pigs: -1,
+    cattle: -1,
+    calves: -1,
+  };
+
+  function secondsInYear(year){
+    const start = new Date(Date.UTC(year, 0, 1, 0, 0, 0));
+    const end   = new Date(Date.UTC(year + 1, 0, 1, 0, 0, 0));
+    return (end - start) / 1000;
+  }
+
+  const SEC_YEAR = secondsInYear(YEAR_REF);
+  const rates = {
+    poultry: ANNUAL.poultry / SEC_YEAR,
+    pigs:    ANNUAL.pigs / SEC_YEAR,
+    cattle:  ANNUAL.cattle / SEC_YEAR,
+    calves:  ANNUAL.calves / SEC_YEAR,
+  };
+  const totalRate = rates.poultry + rates.pigs + rates.cattle + rates.calves;
+
+  function elapsedSeconds(){
+    if (modeEl.value === "open") {
+      return Math.max(0, (performance.now() - openStart) / 1000);
+    }
+    const now = new Date();
+    const start = new Date(Date.UTC(now.getUTCFullYear(), 0, 1, 0, 0, 0));
+    return Math.max(0, (now - start) / 1000);
+  }
+
+  function updateResetUI(){
+    const isOpen = modeEl.value === "open";
+    resetBtn.disabled = !isOpen;
+    resetNote.style.display = isOpen ? "none" : "block";
+  }
+
+  function triggerGlow(el){
+    if (!el) return;
+    el.classList.remove("glow-once");
+    void el.offsetWidth;
+    el.classList.add("glow-once");
+  }
+
+  function syncHundredBaselines(){
+    const t = elapsedSeconds();
+
+    const currentTotal = Math.floor(totalRate * t);
+    hundredSteps.total = Math.floor(currentTotal / 100);
+
+    for (const k of Object.keys(rates)) {
+      const value = Math.floor(rates[k] * t);
+      hundredSteps[k] = Math.floor(value / 100);
+    }
+  }
+
+  function checkAndGlow(key, value){
+    const step = Math.floor(value / 100);
+    if (step > hundredSteps[key]) {
+      triggerGlow(dynamicNumberEls[key]);
+      hundredSteps[key] = step;
+    }
+  }
+
+  function render(){
+    const t = elapsedSeconds();
+
+    const totalValue = Math.floor(totalRate * t);
+    const totalS = totalValue.toLocaleString("de-DE");
+    const rateS  = totalRate.toFixed(2).replace(".", ",");
+    const chipS  = "Hochrechnung · " + (modeEl.value === "year" ? "seit Jahresbeginn" : "seit Seitenaufruf");
+
+    if (totalS !== last.total){
+      totalEl.textContent = totalS;
+      last.total = totalS;
+      checkAndGlow("total", totalValue);
+    }
+
+    if (rateS !== last.rate){
+      rateEl.textContent = rateS;
+      last.rate = rateS;
+    }
+
+    if (chipS !== last.chip){
+      modeChip.innerHTML = `<span class="dot"></span> ${chipS}`;
+      last.chip = chipS;
+    }
+
+    for (const k of Object.keys(rates)) {
+      const value = Math.floor(rates[k] * t);
+      const s = value.toLocaleString("de-DE");
+
+      if (s !== lastCounts[k]) {
+        counts[k].textContent = s;
+        lastCounts[k] = s;
+        checkAndGlow(k, value);
+      }
+    }
+  }
+
+  setInterval(render, 100);
+
+  modeEl.addEventListener("change", () => {
+    if (modeEl.value === "open") openStart = performance.now();
+    updateResetUI();
+    syncHundredBaselines();
+    render();
+  });
+
+  resetBtn.addEventListener("click", () => {
+    openStart = performance.now();
+    syncHundredBaselines();
+    render();
+  });
+
+  fullscreenBtn.addEventListener("click", async () => {
+    try{
+      if (!document.fullscreenElement) await document.documentElement.requestFullscreen();
+      else await document.exitFullscreen();
+    }catch(e){}
+  });
+
+  updateResetUI();
+  syncHundredBaselines();
+  render();
+})();
+</script>
+</body>
+</html>
