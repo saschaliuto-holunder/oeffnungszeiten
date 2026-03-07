@@ -175,15 +175,17 @@ header{
 .statusHead{
   display:flex;
   align-items:center;
+  justify-content:flex-start;
   gap:10px;
-  flex-wrap:wrap
+  flex-wrap:nowrap;
 }
 
 .bigStatus{
   font-size:clamp(36px,4vw,54px);
   font-weight:950;
   letter-spacing:-.03em;
-  line-height:1.05
+  line-height:1;
+  margin:0;
 }
 
 .bigStatus.open{color:var(--ok)}
@@ -252,25 +254,42 @@ header{
   100%{ transform:scale(1); box-shadow:0 0 0 0 rgba(255,77,109,0); }
 }
 
-.metaBlock{
-  margin-top:10px;
+.metaCard{
+  margin-top:14px;
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:12px 14px;
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:16px;
+  background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.03));
+}
+
+.metaText{
+  min-width:0;
   display:flex;
   flex-direction:column;
   gap:4px
 }
 
-.clockInline{
-  font-weight:850;
-  font-size:18px;
-  color:var(--text)
+.digitalInline{
+  font-weight:950;
+  font-size:clamp(22px,2vw,28px);
+  line-height:1;
+  color:var(--text);
+  font-variant-numeric:tabular-nums;
+  letter-spacing:-.02em
 }
 
 .dateInline{
-  font-size:13px;
-  color:var(--muted)
+  font-size:14px;
+  color:var(--text);
+  font-weight:760;
+  line-height:1.35
 }
 
 .holidayInline{
+  margin-top:2px;
   font-size:12px;
   color:rgba(255,255,255,.78)
 }
@@ -278,7 +297,7 @@ header{
 .holidayInline strong{color:var(--text)}
 
 .countdown{
-  margin-top:8px;
+  margin-top:10px;
   font-size:15px;
   color:var(--muted);
   font-variant-numeric:tabular-nums
@@ -379,7 +398,9 @@ header{
   }
 
   .statusHead{
-    gap:8px
+    gap:8px;
+    flex-wrap:nowrap;
+    align-items:center;
   }
 
   .liveDotBtn{
@@ -389,15 +410,20 @@ header{
 
   .bigStatus{
     font-size:clamp(34px,10vw,44px);
-    line-height:1.05
+    line-height:1;
   }
 
-  .clockInline{
-    font-size:17px
+  .metaCard{
+    padding:11px 12px;
+    gap:10px
+  }
+
+  .digitalInline{
+    font-size:22px
   }
 
   .dateInline{
-    font-size:12px;
+    font-size:13px;
     line-height:1.35
   }
 
@@ -446,10 +472,12 @@ header{
               <div class="bigStatus closed" id="bigStatus">GESCHLOSSEN</div>
             </div>
 
-            <div class="metaBlock">
-              <div class="clockInline" id="clock"></div>
-              <div class="dateInline" id="date"></div>
-              <div class="holidayInline" id="holidayLine" style="display:none;"></div>
+            <div class="metaCard">
+              <div class="metaText">
+                <div class="digitalInline" id="digitalClock"></div>
+                <div class="dateInline" id="date"></div>
+                <div class="holidayInline" id="holidayLine" style="display:none;"></div>
+              </div>
             </div>
 
             <div class="countdown" id="countdown" style="display:none;"></div>
@@ -481,7 +509,6 @@ const schedule = {
   6: [["09:00","12:00"]]
 };
 
-const dayOrder = [1,2,3,4,5,6,0];
 const dayNames = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag"];
 
 function toMinutes(hhmm){
@@ -499,10 +526,11 @@ function ymd(date){
 
 function formatCountdown(ms){
   const totalSec = Math.max(0, Math.floor(ms / 1000));
-  const h = Math.floor(totalSec / 3600);
-  const m = Math.floor((totalSec % 3600) / 60);
-  const s = totalSec % 60;
-  return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+  const hours = Math.floor(totalSec / 3600);
+  const minutes = Math.floor((totalSec % 3600) / 60);
+  const seconds = totalSec % 60;
+
+  return `${String(hours).padStart(2,"0")}:${String(minutes).padStart(2,"0")}:${String(seconds).padStart(2,"0")}`;
 }
 
 function easterSunday(year){
@@ -554,6 +582,14 @@ function holidaysNDS(year){
 
 function holidayName(date){
   return holidaysNDS(date.getFullYear()).get(ymd(date)) || null;
+}
+
+function updateClock(now){
+  document.getElementById("digitalClock").textContent = now.toLocaleTimeString("de-DE", {
+    hour:"2-digit",
+    minute:"2-digit",
+    second:"2-digit"
+  });
 }
 
 function statusNow(now){
@@ -635,14 +671,12 @@ function nextOpeningDate(now){
   return null;
 }
 
-function getNextDateForWeekday(baseDate, targetWeekday){
+function getStartOfWeekMonday(baseDate){
   const d = new Date(baseDate);
   d.setHours(0,0,0,0);
-
-  let delta = targetWeekday - d.getDay();
-  if(delta < 0) delta += 7;
-
-  d.setDate(d.getDate() + delta);
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + diff);
   return d;
 }
 
@@ -651,9 +685,16 @@ function renderWeek(){
   const list = document.getElementById("hoursList");
   list.innerHTML = "";
 
-  for(const weekday of dayOrder){
+  const monday = getStartOfWeekMonday(now);
+
+  for(let i = 0; i < 7; i++){
+    const targetDate = new Date(monday);
+    targetDate.setDate(monday.getDate() + i);
+
+    const weekday = targetDate.getDay();
+
     const row = document.createElement("div");
-    row.className = "row" + (weekday === now.getDay() ? " today" : "");
+    row.className = "row" + (ymd(targetDate) === ymd(now) ? " today" : "");
 
     const dayEl = document.createElement("div");
     dayEl.className = "day";
@@ -662,7 +703,6 @@ function renderWeek(){
     const hoursEl = document.createElement("div");
     hoursEl.className = "hours";
 
-    const targetDate = getNextDateForWeekday(now, weekday);
     const hol = holidayName(targetDate);
 
     if(hol){
@@ -688,11 +728,12 @@ function setLiveDot(state){
 function renderStatus(){
   const now = new Date();
 
-  document.getElementById("clock").textContent = now.toLocaleTimeString("de-DE");
+  updateClock(now);
+
   document.getElementById("date").textContent = now.toLocaleDateString("de-DE", {
     weekday:"long",
     day:"2-digit",
-    month:"2-digit",
+    month:"long",
     year:"numeric"
   });
 
