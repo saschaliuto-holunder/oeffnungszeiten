@@ -69,32 +69,27 @@ header{
   background:#fff
 }
 
-.mini{
-  border:1px solid var(--line);
-  padding:12px;
+.infoCardTop{
+  border:1px solid rgba(125,207,255,.28);
+  padding:12px 14px;
   border-radius:16px;
-  min-width:240px;
-  background:rgba(0,0,0,.25)
+  min-width:260px;
+  max-width:360px;
+  background:rgba(125,207,255,.08)
 }
 
-.clock{
+.infoTitle{
+  font-size:14px;
   font-weight:850;
-  font-size:18px
+  color:var(--info);
+  margin-bottom:6px
 }
 
-.date{
-  font-size:12px;
-  color:var(--muted);
-  margin-top:4px
+.infoText{
+  font-size:13px;
+  line-height:1.55;
+  color:var(--text)
 }
-
-.holidayLine{
-  margin-top:6px;
-  font-size:12px;
-  color:rgba(255,255,255,.78)
-}
-
-.holidayLine strong{color:var(--text)}
 
 .content{
   display:grid;
@@ -122,27 +117,6 @@ header{
     border-left:none;
     border-top:1px solid var(--line)
   }
-}
-
-.infoCard{
-  margin-top:14px;
-  padding:14px 16px;
-  border:1px solid rgba(125,207,255,.28);
-  border-radius:16px;
-  background:rgba(125,207,255,.08)
-}
-
-.infoTitle{
-  font-size:14px;
-  font-weight:850;
-  color:var(--info);
-  margin-bottom:6px
-}
-
-.infoText{
-  font-size:13px;
-  line-height:1.55;
-  color:var(--text)
 }
 
 .list{
@@ -263,49 +237,45 @@ header{
 }
 
 @keyframes pulseGreen{
-  0%{
-    transform:scale(1);
-    box-shadow:0 0 0 0 rgba(46,229,157,.55);
-  }
-  70%{
-    transform:scale(1.08);
-    box-shadow:0 0 0 12px rgba(46,229,157,0);
-  }
-  100%{
-    transform:scale(1);
-    box-shadow:0 0 0 0 rgba(46,229,157,0);
-  }
+  0%{ transform:scale(1); box-shadow:0 0 0 0 rgba(46,229,157,.55); }
+  70%{ transform:scale(1.08); box-shadow:0 0 0 12px rgba(46,229,157,0); }
+  100%{ transform:scale(1); box-shadow:0 0 0 0 rgba(46,229,157,0); }
 }
-
 @keyframes pulseYellow{
-  0%{
-    transform:scale(1);
-    box-shadow:0 0 0 0 rgba(255,211,106,.55);
-  }
-  70%{
-    transform:scale(1.08);
-    box-shadow:0 0 0 12px rgba(255,211,106,0);
-  }
-  100%{
-    transform:scale(1);
-    box-shadow:0 0 0 0 rgba(255,211,106,0);
-  }
+  0%{ transform:scale(1); box-shadow:0 0 0 0 rgba(255,211,106,.55); }
+  70%{ transform:scale(1.08); box-shadow:0 0 0 12px rgba(255,211,106,0); }
+  100%{ transform:scale(1); box-shadow:0 0 0 0 rgba(255,211,106,0); }
+}
+@keyframes pulseRed{
+  0%{ transform:scale(1); box-shadow:0 0 0 0 rgba(255,77,109,.55); }
+  70%{ transform:scale(1.08); box-shadow:0 0 0 12px rgba(255,77,109,0); }
+  100%{ transform:scale(1); box-shadow:0 0 0 0 rgba(255,77,109,0); }
 }
 
-@keyframes pulseRed{
-  0%{
-    transform:scale(1);
-    box-shadow:0 0 0 0 rgba(255,77,109,.55);
-  }
-  70%{
-    transform:scale(1.08);
-    box-shadow:0 0 0 12px rgba(255,77,109,0);
-  }
-  100%{
-    transform:scale(1);
-    box-shadow:0 0 0 0 rgba(255,77,109,0);
-  }
+.metaBlock{
+  margin-top:10px;
+  display:flex;
+  flex-direction:column;
+  gap:4px
 }
+
+.clockInline{
+  font-weight:850;
+  font-size:18px;
+  color:var(--text)
+}
+
+.dateInline{
+  font-size:13px;
+  color:var(--muted)
+}
+
+.holidayInline{
+  font-size:12px;
+  color:rgba(255,255,255,.78)
+}
+
+.holidayInline strong{color:var(--text)}
 
 .countdown{
   margin-top:8px;
@@ -371,15 +341,20 @@ header{
   .panel{width:100%}
   .shell{border-radius:18px}
 
-  header{padding:14px 14px 10px}
+  header{
+    padding:14px 14px 10px;
+    flex-direction:column;
+    align-items:stretch
+  }
 
   .brand img{
     max-width:100%;
     height:auto
   }
 
-  .mini{
+  .infoCardTop{
     min-width:0;
+    max-width:none;
     width:100%;
     margin-top:10px
   }
@@ -417,6 +392,15 @@ header{
     line-height:1.05
   }
 
+  .clockInline{
+    font-size:17px
+  }
+
+  .dateInline{
+    font-size:12px;
+    line-height:1.35
+  }
+
   .detail{
     font-size:16px;
     line-height:1.3;
@@ -426,10 +410,6 @@ header{
   .countdown{font-size:14px}
   .impressum{font-size:13px}
   .statusCard{height:auto}
-
-  .infoCard{
-    margin-top:12px
-  }
 
   .infoText{
     font-size:13px
@@ -444,10 +424,12 @@ header{
       <div class="brand">
         <img src="liutografie-logo.jpg?v=2" alt="Liutografie Logo">
       </div>
-      <div class="mini">
-        <div class="clock" id="clock"></div>
-        <div class="date" id="date"></div>
-        <div class="holidayLine" id="holidayLine" style="display:none;"></div>
+
+      <div class="infoCardTop">
+        <div class="infoTitle">Passbilder & Dokumentenfotos</div>
+        <div class="infoText">
+          Digitale Passbilder mit QR-Code sowie Passbilder für Führerschein und andere Dokumente erhalten Sie direkt bei uns.
+        </div>
       </div>
     </header>
 
@@ -463,15 +445,15 @@ header{
               <button class="liveDotBtn closed" id="liveDotBtn" aria-label="Vollbild umschalten" title="Vollbild"></button>
               <div class="bigStatus closed" id="bigStatus">GESCHLOSSEN</div>
             </div>
+
+            <div class="metaBlock">
+              <div class="clockInline" id="clock"></div>
+              <div class="dateInline" id="date"></div>
+              <div class="holidayInline" id="holidayLine" style="display:none;"></div>
+            </div>
+
             <div class="countdown" id="countdown" style="display:none;"></div>
             <div class="detail" id="detail">—</div>
-
-            <div class="infoCard">
-              <div class="infoTitle">Passbilder & Dokumentenfotos</div>
-              <div class="infoText">
-                Digitale Passbilder mit QR-Code sowie Passbilder für Führerschein und andere Dokumente erhalten Sie direkt bei uns.
-              </div>
-            </div>
           </div>
 
           <div class="impressum">
