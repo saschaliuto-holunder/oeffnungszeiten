@@ -28,6 +28,7 @@
       -moz-osx-font-smoothing: grayscale;
       text-rendering: geometricPrecision;
       overflow:hidden;
+      cursor:pointer;
     }
 
     .wrap{
@@ -50,6 +51,7 @@
       align-items:flex-start;
       gap:12px;
       flex-wrap:wrap;
+      z-index:2;
     }
 
     .badge{
@@ -82,6 +84,7 @@
       gap:10px;
       flex-wrap:wrap;
       justify-content:flex-end;
+      cursor:default;
     }
 
     .field{
@@ -110,10 +113,10 @@
       font-size:14px;
       outline:none;
       backdrop-filter: blur(8px);
+      cursor:pointer;
     }
 
     button{
-      cursor:pointer;
       background:linear-gradient(180deg, rgba(183,198,255,0.18), rgba(183,198,255,0.08));
     }
 
@@ -131,6 +134,7 @@
       justify-content:center;
       gap:22px;
       text-align:center;
+      padding-top:clamp(70px, 9vh, 130px);
     }
 
     .eyebrow{
@@ -189,6 +193,7 @@
       flex-wrap:wrap;
       justify-content:center;
       margin-top:2px;
+      cursor:default;
     }
 
     .note{
@@ -198,6 +203,7 @@
       max-width:860px;
       line-height:1.45;
       margin-top:8px;
+      cursor:default;
     }
 
     @keyframes numberGlow {
@@ -229,7 +235,9 @@
     }
 
     @media (max-width: 720px){
-      body{ overflow:auto; }
+      body{
+        overflow:auto;
+      }
 
       .topbar{
         position:static;
@@ -258,6 +266,7 @@
         margin-top:auto;
         margin-bottom:auto;
         gap:18px;
+        padding-top:clamp(30px, 5vh, 60px);
       }
 
       .eyebrow{
@@ -290,7 +299,6 @@
         </div>
 
         <button id="reset" disabled>Reset</button>
-        <button id="fullscreen">Vollbild</button>
       </div>
     </div>
 
@@ -324,7 +332,6 @@
 
       const modeEl = $("mode");
       const resetBtn = $("reset");
-      const fullscreenBtn = $("fullscreen");
       const resetNote = $("resetNote");
       const modeChip = $("modeChip");
 
@@ -402,20 +409,25 @@
         }
       }
 
-      modeEl.addEventListener("change", () => {
+      modeEl.addEventListener("change", (e) => {
+        e.stopPropagation();
         if (modeEl.value === "open") openStart = performance.now();
         updateResetUI();
         syncHundredBaseline();
         render();
       });
 
-      resetBtn.addEventListener("click", () => {
+      resetBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
         openStart = performance.now();
         syncHundredBaseline();
         render();
       });
 
-      fullscreenBtn.addEventListener("click", async () => {
+      document.addEventListener("click", async (e) => {
+        const interactive = e.target.closest("select, button, option, label");
+        if (interactive) return;
+
         try{
           if (!document.fullscreenElement) {
             await document.documentElement.requestFullscreen();
