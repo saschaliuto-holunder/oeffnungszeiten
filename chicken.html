@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hühner-Zähler (DE)</title>
+  <style>
+    :root{
+      --bg:#05060a;
+      --fg:#f2f3f7;
+      --muted:#a9afc3;
+      --line:#202641;
+      --line2:#2f3866;
+      --accent:#b7c6ff;
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+
+    body{
+      margin:0;
+      background:
+        radial-gradient(1200px 700px at 68% 35%, rgba(48,64,130,0.35) 0%, rgba(5,6,10,0) 60%),
+        radial-gradient(900px 500px at 20% 70%, rgba(183,198,255,0.12) 0%, rgba(5,6,10,0) 62%),
+        var(--bg);
+      color:var(--fg);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: geometricPrecision;
+      overflow:hidden;
+    }
+
+    .wrap{
+      min-height:100%;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      padding:clamp(18px, 2vw, 28px);
+      position:relative;
+    }
+
+    .topbar{
+      position:absolute;
+      top:18px;
+      left:18px;
+      right:18px;
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:8px 12px;
+      border-radius:999px;
+      border:1px solid var(--line2);
+      background:rgba(0,0,0,0.24);
+      color:var(--muted);
+      font-size:12px;
+      white-space:nowrap;
+      backdrop-filter: blur(8px);
+    }
+
+    .dot{
+      width:8px;
+      height:8px;
+      border-radius:999px;
+      background:rgba(183,198,255,0.95);
+      box-shadow:0 0 0 4px rgba(183,198,255,0.16);
+      display:inline-block;
+      flex:0 0 auto;
+    }
+
+    .controls{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      min-width:200px;
+    }
+
+    .field label{
+      font-size:11px;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:0.12em;
+      font-weight:900;
+      padding-left:4px;
+    }
+
+    select, button{
+      border:1px solid rgba(47,56,102,0.9);
+      background:rgba(0,0,0,0.24);
+      color:var(--fg);
+      border-radius:16px;
+      padding:12px 14px;
+      font-weight:850;
+      font-size:14px;
+      outline:none;
+      backdrop-filter: blur(8px);
+    }
+
+    button{
+      cursor:pointer;
+      background:linear-gradient(180deg, rgba(183,198,255,0.18), rgba(183,198,255,0.08));
+    }
+
+    button[disabled]{
+      cursor:not-allowed;
+      opacity:0.45;
+      filter:saturate(0.6);
+    }
+
+    .hero{
+      width:min(1500px, 100%);
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:18px;
+      text-align:center;
+    }
+
+    .eyebrow{
+      color:var(--fg);
+      font-size:clamp(20px, 2.3vw, 36px);
+      text-transform:uppercase;
+      letter-spacing:0.08em;
+      font-weight:950;
+      line-height:1.15;
+      text-wrap:balance;
+      max-width:1300px;
+    }
+
+    .number-wrap{
+      width:min(1400px, 100%);
+      min-height:clamp(140px, 22vw, 290px);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding-inline: clamp(8px, 2vw, 24px);
+    }
+
+    .number{
+      display:inline-block;
+      min-width:11ch;
+      max-width:100%;
+      text-align:center;
+      white-space:nowrap;
+
+      font-family:
+        ui-monospace,
+        "SFMono-Regular",
+        "Cascadia Mono",
+        "Segoe UI Mono",
+        "Roboto Mono",
+        "Oxygen Mono",
+        "Liberation Mono",
+        monospace;
+
+      font-size:clamp(68px, 12vw, 220px);
+      line-height:1;
+      font-weight:900;
+      letter-spacing:-0.03em;
+      font-variant-numeric: tabular-nums lining-nums;
+      font-feature-settings:"tnum" 1, "lnum" 1;
+      user-select:none;
+      color:var(--fg);
+      text-shadow:0 24px 60px rgba(0,0,0,0.7);
+      transform:translateZ(0);
+      will-change:text-shadow, color;
+    }
+
+    .meta{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:center;
+      margin-top:2px;
+    }
+
+    .note{
+      color:var(--muted);
+      font-size:13px;
+      text-align:center;
+      max-width:860px;
+      line-height:1.45;
+      margin-top:8px;
+    }
+
+    @keyframes numberGlow {
+      0% {
+        color: var(--fg);
+        text-shadow:
+          0 24px 60px rgba(0,0,0,0.7),
+          0 0 0 rgba(255, 70, 70, 0),
+          0 0 0 rgba(255, 70, 70, 0);
+      }
+      35% {
+        color:#ff7b7b;
+        text-shadow:
+          0 24px 60px rgba(0,0,0,0.7),
+          0 0 14px rgba(255, 50, 50, 0.95),
+          0 0 34px rgba(255, 50, 50, 0.50);
+      }
+      100% {
+        color: var(--fg);
+        text-shadow:
+          0 24px 60px rgba(0,0,0,0.7),
+          0 0 0 rgba(255, 70, 70, 0),
+          0 0 0 rgba(255, 70, 70, 0);
+      }
+    }
+
+    .glow-once{
+      animation:numberGlow 0.36s ease-out;
+    }
+
+    @media (max-width: 720px){
+      body{ overflow:auto; }
+
+      .topbar{
+        position:static;
+        margin-bottom:18px;
+      }
+
+      .wrap{
+        justify-content:flex-start;
+        padding-top:18px;
+      }
+
+      .controls{
+        justify-content:flex-start;
+      }
+
+      .field{
+        min-width:unset;
+        width:100%;
+      }
+
+      .controls button{
+        flex:1 1 140px;
+      }
+
+      .hero{
+        margin-top:auto;
+        margin-bottom:auto;
+      }
+
+      .eyebrow{
+        font-size:clamp(18px, 5.8vw, 28px);
+        letter-spacing:0.06em;
+      }
+
+      .number{
+        min-width:10ch;
+        font-size:clamp(54px, 13vw, 120px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="badge" id="modeChip">
+        <span class="dot"></span>
+        Hochrechnung · seit Jahresbeginn
+      </div>
+
+      <div class="controls">
+        <div class="field">
+          <label for="mode">Startpunkt</label>
+          <select id="mode">
+            <option value="year">Seit Jahresbeginn</option>
+            <option value="open">Seit Seitenaufruf</option>
+          </select>
+        </div>
+
+        <button id="reset" disabled>Reset</button>
+        <button id="fullscreen">Vollbild</button>
+      </div>
+    </div>
+
+    <main class="hero">
+      <div class="eyebrow">Geschätzt getötete Hühner in Deutschland – wegen des Konsums von Nicht-Veganern</div>
+
+      <div class="number-wrap">
+        <div class="number" id="count">0</div>
+      </div>
+
+      <div class="meta">
+        <div class="badge">Ø <span id="rate">0</span> pro Sekunde</div>
+        <div class="badge">Referenzjahr: <span id="yearRef">2025</span></div>
+      </div>
+
+      <div class="note" id="resetNote">
+        Im Modus „Seit Jahresbeginn“ beginnt die Hochrechnung am 1. Januar.
+        Im Modus „Seit Seitenaufruf“ kannst du mit Reset wieder bei null starten.
+      </div>
+    </main>
+  </div>
+
+  <script>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+
+      const YEAR_REF = 2025;
+      const ANNUAL_CHICKENS = 640300000 + 20700000; // 661.000.000
+
+      $("yearRef").textContent = String(YEAR_REF);
+
+      const modeEl = $("mode");
+      const resetBtn = $("reset");
+      const fullscreenBtn = $("fullscreen");
+      const resetNote = $("resetNote");
+      const modeChip = $("modeChip");
+
+      const countEl = $("count");
+      const rateEl = $("rate");
+
+      let openStart = performance.now();
+
+      let lastCount = "";
+      let lastRate = "";
+      let lastChip = "";
+      let lastHundredStep = -1;
+
+      function secondsInYear(year){
+        const start = new Date(Date.UTC(year, 0, 1, 0, 0, 0));
+        const end   = new Date(Date.UTC(year + 1, 0, 1, 0, 0, 0));
+        return (end - start) / 1000;
+      }
+
+      const SEC_YEAR = secondsInYear(YEAR_REF);
+      const chickenRate = ANNUAL_CHICKENS / SEC_YEAR;
+
+      function elapsedSeconds(){
+        if (modeEl.value === "open") {
+          return Math.max(0, (performance.now() - openStart) / 1000);
+        }
+        const now = new Date();
+        const start = new Date(Date.UTC(now.getUTCFullYear(), 0, 1, 0, 0, 0));
+        return Math.max(0, (now - start) / 1000);
+      }
+
+      function updateResetUI(){
+        const isOpen = modeEl.value === "open";
+        resetBtn.disabled = !isOpen;
+        resetNote.style.display = isOpen ? "none" : "block";
+      }
+
+      function triggerGlow(el){
+        el.classList.remove("glow-once");
+        void el.offsetWidth;
+        el.classList.add("glow-once");
+      }
+
+      function syncHundredBaseline(){
+        const value = Math.floor(chickenRate * elapsedSeconds());
+        lastHundredStep = Math.floor(value / 100);
+      }
+
+      function render(){
+        const t = elapsedSeconds();
+        const value = Math.floor(chickenRate * t);
+        const countS = value.toLocaleString("de-DE");
+        const rateS = chickenRate.toFixed(2).replace(".", ",");
+        const chipS = "Hochrechnung · " + (modeEl.value === "year" ? "seit Jahresbeginn" : "seit Seitenaufruf");
+
+        if (countS !== lastCount){
+          countEl.textContent = countS;
+          lastCount = countS;
+
+          const currentHundredStep = Math.floor(value / 100);
+          if (currentHundredStep > lastHundredStep) {
+            triggerGlow(countEl);
+            lastHundredStep = currentHundredStep;
+          }
+        }
+
+        if (rateS !== lastRate){
+          rateEl.textContent = rateS;
+          lastRate = rateS;
+        }
+
+        if (chipS !== lastChip){
+          modeChip.innerHTML = `<span class="dot"></span> ${chipS}`;
+          lastChip = chipS;
+        }
+      }
+
+      modeEl.addEventListener("change", () => {
+        if (modeEl.value === "open") openStart = performance.now();
+        updateResetUI();
+        syncHundredBaseline();
+        render();
+      });
+
+      resetBtn.addEventListener("click", () => {
+        openStart = performance.now();
+        syncHundredBaseline();
+        render();
+      });
+
+      fullscreenBtn.addEventListener("click", async () => {
+        try{
+          if (!document.fullscreenElement) {
+            await document.documentElement.requestFullscreen();
+          } else {
+            await document.exitFullscreen();
+          }
+        } catch(e) {}
+      });
+
+      updateResetUI();
+      syncHundredBaseline();
+      render();
+      setInterval(render, 100);
+    })();
+  </script>
+</body>
+</html>
