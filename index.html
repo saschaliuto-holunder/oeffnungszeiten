@@ -312,6 +312,47 @@ header{
   line-height:1.35
 }
 
+.weatherCard{
+  margin-top:12px;
+  border:1px solid rgba(125,207,255,.22);
+  background:linear-gradient(180deg,rgba(125,207,255,.10),rgba(125,207,255,.04));
+}
+
+.weatherTitle{
+  font-size:14px;
+  font-weight:850;
+  color:var(--info);
+  margin-bottom:6px;
+}
+
+.weatherMain{
+  display:flex;
+  align-items:baseline;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+#weatherTemp{
+  font-size:clamp(24px,2.2vw,32px);
+  font-weight:950;
+  line-height:1;
+  color:var(--info);
+  font-variant-numeric:tabular-nums;
+}
+
+#weatherDesc{
+  font-size:15px;
+  font-weight:760;
+  color:var(--text);
+}
+
+.weatherSub{
+  margin-top:4px;
+  font-size:13px;
+  color:var(--muted);
+  line-height:1.4;
+}
+
 .impressum{
   margin-top:14px;
   padding-top:14px;
@@ -480,6 +521,17 @@ header{
               </div>
             </div>
 
+            <div class="metaCard weatherCard" id="weatherCard">
+              <div class="metaText">
+                <div class="weatherTitle">Wetter in Bad Nenndorf</div>
+                <div class="weatherMain">
+                  <span id="weatherTemp">--°C</span>
+                  <span id="weatherDesc">Wird geladen …</span>
+                </div>
+                <div class="weatherSub" id="weatherSub"></div>
+              </div>
+            </div>
+
             <div class="countdown" id="countdown" style="display:none;"></div>
             <div class="detail" id="detail">—</div>
           </div>
@@ -526,9 +578,14 @@ function ymd(date){
 
 function formatCountdown(ms){
   const totalSec = Math.max(0, Math.floor(ms / 1000));
-  const hours = Math.floor(totalSec / 3600);
+  const days = Math.floor(totalSec / 86400);
+  const hours = Math.floor((totalSec % 86400) / 3600);
   const minutes = Math.floor((totalSec % 3600) / 60);
   const seconds = totalSec % 60;
+
+  if(days > 0){
+    return `${days}T ${String(hours).padStart(2,"0")}:${String(minutes).padStart(2,"0")}:${String(seconds).padStart(2,"0")}`;
+  }
 
   return `${String(hours).padStart(2,"0")}:${String(minutes).padStart(2,"0")}:${String(seconds).padStart(2,"0")}`;
 }
@@ -803,6 +860,83 @@ function renderStatus(){
   }
 }
 
+function weatherCodeToGerman(code){
+  const map = {
+    0: "Klar",
+    1: "Überwiegend klar",
+    2: "Teilweise bewölkt",
+    3: "Bedeckt",
+    45: "Neblig",
+    48: "Raureifnebel",
+    51: "Leichter Nieselregen",
+    53: "Mäßiger Nieselregen",
+    55: "Starker Nieselregen",
+    56: "Leichter gefrierender Nieselregen",
+    57: "Starker gefrierender Nieselregen",
+    61: "Leichter Regen",
+    63: "Mäßiger Regen",
+    65: "Starker Regen",
+    66: "Leichter gefrierender Regen",
+    67: "Starker gefrierender Regen",
+    71: "Leichter Schneefall",
+    73: "Mäßiger Schneefall",
+    75: "Starker Schneefall",
+    77: "Schneekörner",
+    80: "Leichte Regenschauer",
+    81: "Mäßige Regenschauer",
+    82: "Starke Regenschauer",
+    85: "Leichte Schneeschauer",
+    86: "Starke Schneeschauer",
+    95: "Gewitter",
+    96: "Gewitter mit leichtem Hagel",
+    99: "Gewitter mit starkem Hagel"
+  };
+  return map[code] || "Unbekannt";
+}
+
+async function loadWeather(){
+  const tempEl = document.getElementById("weatherTemp");
+  const descEl = document.getElementById("weatherDesc");
+  const subEl = document.getElementById("weatherSub");
+
+  if(!tempEl || !descEl || !subEl) return;
+
+  try{
+    const lat = 52.337;
+    const lon = 9.379;
+
+    const url =
+      `https://api.open-meteo.com/v1/forecast` +
+      `?latitude=${lat}` +
+      `&longitude=${lon}` +
+      `&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m` +
+      `&wind_speed_unit=kmh` +
+      `&timezone=Europe%2FBerlin`;
+
+    const res = await fetch(url, { cache: "no-store" });
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    const data = await res.json();
+    const current = data.current;
+
+    if(!current) throw new Error("Keine Wetterdaten erhalten");
+
+    const temp = Math.round(current.temperature_2m);
+    const feels = Math.round(current.apparent_temperature);
+    const wind = Math.round(current.wind_speed_10m);
+    const desc = weatherCodeToGerman(current.weather_code);
+
+    tempEl.textContent = `${temp}°C`;
+    descEl.textContent = desc;
+    subEl.textContent = `Gefühlt ${feels}°C · Wind ${wind} km/h`;
+  } catch(err){
+    console.error("Wetter konnte nicht geladen werden:", err);
+    tempEl.textContent = "--°C";
+    descEl.textContent = "Wetter nicht verfügbar";
+    subEl.textContent = "";
+  }
+}
+
 function renderAll(){
   renderWeek();
   renderStatus();
@@ -823,8 +957,11 @@ async function toggleFullscreen(){
 document.getElementById("liveDotBtn").addEventListener("click", toggleFullscreen);
 
 renderAll();
+loadWeather();
+
 setInterval(renderStatus, 1000);
 setInterval(renderWeek, 60000);
+setInterval(loadWeather, 600000);
 </script>
 </body>
 </html>
