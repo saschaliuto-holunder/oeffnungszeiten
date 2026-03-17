@@ -16,6 +16,10 @@
   --pause:#ffd36a;
   --shadow:0 30px 80px rgba(0,0,0,.55);
   --radius:28px;
+  --headerBg:#ffffff;
+  --headerText:#101714;
+  --headerMuted:rgba(16,23,20,.62);
+  --headerLine:rgba(16,23,20,.10);
 }
 
 *{box-sizing:border-box}
@@ -56,61 +60,102 @@ body{
   gap:24px;
 }
 
-/* NEU: Logo + Wetter nebeneinander */
 .topBar{
   width:min(1100px,100%);
+}
+
+.headerPanel{
+  width:100%;
+  min-height:180px;
+  background:var(--headerBg);
+  color:var(--headerText);
+  border-radius:22px;
+  box-shadow:0 18px 36px rgba(0,0,0,.18);
   display:grid;
-  grid-template-columns:minmax(0, 2fr) minmax(300px, 1fr);
-  gap:24px;
+  grid-template-columns:minmax(0, 2fr) minmax(320px, 1fr);
   align-items:stretch;
+  overflow:hidden;
 }
 
 .logoWrap{
-  width:100%;
-  height:180px;
+  min-width:0;
   display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:18px 24px;
 }
 
 .logoWrap img{
   width:100%;
-  height:100%;
+  height:144px;
   object-fit:contain;
   display:block;
-  margin:0 auto;
-  border-radius:18px;
-  background:#fff;
 }
 
-/* NEU: Wetterkasten */
-.weatherBox{
-  height:180px;
-  border:1px solid var(--line);
-  border-radius:22px;
-  background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.04));
+.weatherPanel{
+  min-width:0;
+  border-left:1px solid var(--headerLine);
   display:flex;
   flex-direction:column;
   justify-content:center;
-  align-items:flex-start;
   padding:20px 24px;
   text-align:left;
-  overflow:hidden;
+  background:linear-gradient(180deg,rgba(16,23,20,.015),rgba(16,23,20,.03));
 }
 
 .weatherLabel{
-  font-size:clamp(13px,1vw,16px);
+  font-size:clamp(12px,0.95vw,15px);
   font-weight:800;
   letter-spacing:.08em;
   text-transform:uppercase;
-  color:var(--muted);
-  margin-bottom:10px;
+  color:var(--headerMuted);
+  margin-bottom:12px;
 }
 
-.weather{
-  font-size:clamp(18px,1.45vw,24px);
-  color:var(--text);
+.weatherNow{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  min-width:0;
+}
+
+.weatherIcon{
+  flex:0 0 auto;
+  width:72px;
+  height:72px;
+  border-radius:18px;
+  background:#f3f5f4;
+  border:1px solid rgba(16,23,20,.08);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:clamp(38px,3vw,56px);
+  line-height:1;
+}
+
+.weatherContent{
+  min-width:0;
+  flex:1 1 auto;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.weatherMain{
+  font-size:clamp(20px,1.5vw,27px);
+  font-weight:850;
+  color:var(--headerText);
+  line-height:1.18;
+  white-space:normal;
+  overflow-wrap:break-word;
+}
+
+.weatherSub{
+  font-size:clamp(14px,1vw,18px);
+  color:var(--headerMuted);
   line-height:1.35;
-  min-height:1.4em;
-  font-weight:700;
+  white-space:normal;
+  overflow-wrap:break-word;
 }
 
 .statusHead{
@@ -253,32 +298,50 @@ body{
     border-radius:20px;
   }
 
-  .topBar{
+  .headerPanel{
+    min-height:auto;
     grid-template-columns:1fr;
-    gap:14px;
   }
 
   .logoWrap{
-    width:min(92%,520px);
-    margin:0 auto;
-    height:110px;
+    padding:16px 18px 12px;
   }
 
   .logoWrap img{
-    max-height:none;
-    height:100%;
+    height:94px;
   }
 
-  .weatherBox{
-    height:auto;
-    min-height:110px;
-    padding:16px 18px;
-    align-items:center;
+  .weatherPanel{
+    border-left:none;
+    border-top:1px solid var(--headerLine);
+    padding:14px 18px 16px;
     text-align:center;
+    align-items:center;
+    background:linear-gradient(180deg,rgba(16,23,20,.02),rgba(16,23,20,.04));
   }
 
-  .weather{
-    font-size:13px;
+  .weatherLabel{
+    margin-bottom:10px;
+  }
+
+  .weatherNow{
+    justify-content:center;
+    text-align:left;
+  }
+
+  .weatherIcon{
+    width:56px;
+    height:56px;
+    border-radius:14px;
+    font-size:32px;
+  }
+
+  .weatherMain{
+    font-size:16px;
+  }
+
+  .weatherSub{
+    font-size:12px;
   }
 
   .statusHead{ gap:12px; }
@@ -292,7 +355,6 @@ body{
   .clock{ font-size:clamp(26px,9vw,46px); }
   .date{ font-size:clamp(15px,4.4vw,22px); }
   .holiday{ font-size:13px; }
-
   .countdown{ font-size:clamp(16px,5vw,24px); }
   .detail{ font-size:clamp(16px,4.8vw,24px); }
 }
@@ -303,13 +365,21 @@ body{
   <div class="card">
 
     <div class="topBar">
-      <div class="logoWrap">
-        <img src="liutografie-logo.jpg?v=2" alt="Liutografie Logo">
-      </div>
+      <div class="headerPanel">
+        <div class="logoWrap">
+          <img src="liutografie-logo.jpg?v=2" alt="Liutografie Logo">
+        </div>
 
-      <div class="weatherBox">
-        <div class="weatherLabel">Wetter</div>
-        <div class="weather" id="weatherLine">Wetter wird geladen …</div>
+        <div class="weatherPanel">
+          <div class="weatherLabel">Wetter</div>
+          <div class="weatherNow">
+            <div class="weatherIcon" id="weatherIcon">🌍</div>
+            <div class="weatherContent">
+              <div class="weatherMain" id="weatherMain">Wetter wird geladen …</div>
+              <div class="weatherSub" id="weatherSub"></div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -342,7 +412,6 @@ const schedule = {
 
 const dayNames = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag"];
 
-// Bad Nenndorf ungefähr
 const WEATHER_LAT = 52.34;
 const WEATHER_LON = 9.38;
 
@@ -379,6 +448,40 @@ const weatherCodeMap = {
   96: "⛈️ Gewitter mit leichtem Hagel",
   99: "⛈️ Gewitter mit Hagel"
 };
+
+function weatherEmojiFromCode(code){
+  const map = {
+    0:"☀️",
+    1:"🌤️",
+    2:"⛅",
+    3:"☁️",
+    45:"🌫️",
+    48:"🌫️",
+    51:"🌦️",
+    53:"🌦️",
+    55:"🌧️",
+    56:"🌧️",
+    57:"🌧️",
+    61:"🌦️",
+    63:"🌧️",
+    65:"🌧️",
+    66:"🌧️",
+    67:"🌧️",
+    71:"🌨️",
+    73:"❄️",
+    75:"❄️",
+    77:"❄️",
+    80:"🌦️",
+    81:"🌧️",
+    82:"🌧️",
+    85:"🌨️",
+    86:"❄️",
+    95:"⛈️",
+    96:"⛈️",
+    99:"⛈️"
+  };
+  return map[code] || "🌍";
+}
 
 function toMinutes(hhmm){
   const h = parseInt(hhmm.slice(0,2), 10);
@@ -470,20 +573,28 @@ function weatherTextFromCode(code){
 }
 
 function renderWeather(data){
-  const el = document.getElementById("weatherLine");
-  if(!el || !data) return;
+  const iconEl = document.getElementById("weatherIcon");
+  const mainEl = document.getElementById("weatherMain");
+  const subEl = document.getElementById("weatherSub");
+
+  if(!iconEl || !mainEl || !subEl || !data) return;
 
   const current = data.current_weather;
   const daily = data.daily;
 
   if(!current){
-    el.textContent = "Wetter aktuell nicht verfügbar";
+    iconEl.textContent = "🌍";
+    mainEl.textContent = "Wetter aktuell nicht verfügbar";
+    subEl.textContent = "";
     return;
   }
 
   const temp = Math.round(current.temperature);
   const wind = Math.round(current.windspeed);
   const text = weatherTextFromCode(current.weathercode);
+  const icon = weatherEmojiFromCode(current.weathercode);
+  const cleanText = text.replace(/^.+?\s/, "");
+  const tempText = temp + "\u00A0°C";
 
   let minMax = "";
   if(
@@ -495,10 +606,12 @@ function renderWeather(data){
   ){
     const min = Math.round(daily.temperature_2m_min[0]);
     const max = Math.round(daily.temperature_2m_max[0]);
-    minMax = " · Heute " + min + "–" + max + " °C";
+    minMax = "Heute " + min + "–" + max + "\u00A0°C";
   }
 
-  el.textContent = text + " · " + temp + " °C · Wind " + wind + " km/h" + minMax;
+  iconEl.textContent = icon;
+  mainEl.textContent = cleanText + " · " + tempText;
+  subEl.textContent = "Wind " + wind + " km/h" + (minMax ? " · " + minMax : "");
 }
 
 function fetchWeather(){
@@ -532,9 +645,15 @@ function fetchWeather(){
     })
     .catch(function(err){
       console.error("Wetter konnte nicht geladen werden:", err);
-      const el = document.getElementById("weatherLine");
-      if(el && !weatherCache){
-        el.textContent = "Wetter aktuell nicht verfügbar";
+
+      const iconEl = document.getElementById("weatherIcon");
+      const mainEl = document.getElementById("weatherMain");
+      const subEl = document.getElementById("weatherSub");
+
+      if(iconEl && mainEl && subEl && !weatherCache){
+        iconEl.textContent = "🌍";
+        mainEl.textContent = "Wetter aktuell nicht verfügbar";
+        subEl.textContent = "";
       }
     });
 }
