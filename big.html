@@ -96,20 +96,11 @@ body{
   min-width:0;
   border-left:1px solid var(--headerLine);
   display:flex;
-  flex-direction:column;
+  align-items:center;
   justify-content:center;
   padding:20px 24px;
   text-align:left;
   background:linear-gradient(180deg,rgba(16,23,20,.015),rgba(16,23,20,.03));
-}
-
-.weatherLabel{
-  font-size:clamp(12px,0.95vw,15px);
-  font-weight:800;
-  letter-spacing:.08em;
-  text-transform:uppercase;
-  color:var(--headerMuted);
-  margin-bottom:12px;
 }
 
 .weatherNow{
@@ -117,6 +108,7 @@ body{
   align-items:center;
   gap:16px;
   min-width:0;
+  width:100%;
 }
 
 .weatherIcon{
@@ -316,12 +308,8 @@ body{
     border-top:1px solid var(--headerLine);
     padding:14px 18px 16px;
     text-align:center;
-    align-items:center;
+    justify-content:center;
     background:linear-gradient(180deg,rgba(16,23,20,.02),rgba(16,23,20,.04));
-  }
-
-  .weatherLabel{
-    margin-bottom:10px;
   }
 
   .weatherNow{
@@ -371,7 +359,6 @@ body{
         </div>
 
         <div class="weatherPanel">
-          <div class="weatherLabel">Wetter</div>
           <div class="weatherNow">
             <div class="weatherIcon" id="weatherIcon">🌍</div>
             <div class="weatherContent">
