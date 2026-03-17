@@ -64,7 +64,8 @@ header{
 
 .logoCard{
   width:100%;
-  background:#fff;
+  border:1px solid rgba(255,255,255,.10);
+  background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.03));
   border-radius:16px;
   padding:12px 18px 14px;
   display:flex;
@@ -73,6 +74,7 @@ header{
   justify-content:center;
   gap:10px;
   text-align:center;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
 }
 
 .logoCard img{
@@ -83,6 +85,7 @@ header{
   object-fit:contain;
   display:block;
   margin:0 auto;
+  filter:brightness(1.02) contrast(1.02);
 }
 
 .logoSubline{
@@ -91,7 +94,7 @@ header{
   font-size:13px;
   line-height:1.35;
   font-weight:700;
-  color:#2d2d2d;
+  color:rgba(255,255,255,.88);
   letter-spacing:.01em;
 }
 
