@@ -673,7 +673,7 @@ function renderWeather(data){
 
   iconEl.textContent = icon;
   iconEl.className = "weatherIcon " + iconClass;
-  mainEl.textContent = cleanText + " · " + tempText;
+  mainEl.textContent = cleanText + " " + tempText;
   subEl.textContent = "Wind " + wind + " km/h" + (minMax ? " · " + minMax : "");
 }
 
