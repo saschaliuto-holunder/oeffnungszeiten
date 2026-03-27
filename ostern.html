@@ -51,7 +51,7 @@ body{
   position:absolute;
   user-select:none;
   line-height:1;
-  opacity:.82;
+  opacity:.84;
   filter:
     drop-shadow(0 0 10px rgba(255,255,255,.14))
     drop-shadow(0 0 24px rgba(255,218,122,.16))
@@ -456,10 +456,10 @@ body{
   .countdown{ font-size:clamp(16px,5vw,24px); }
   .detail{ font-size:clamp(16px,4.8vw,24px); }
 
-  .decor.s1{ font-size:26px; }
-  .decor.s2{ font-size:36px; }
-  .decor.s3{ font-size:48px; }
-  .decor.s4{ font-size:60px; }
+  .decor.s1{ font-size:24px; }
+  .decor.s2{ font-size:32px; }
+  .decor.s3{ font-size:42px; }
+  .decor.s4{ font-size:54px; }
 }
 </style>
 </head>
@@ -965,26 +965,32 @@ async function toggleFullscreen(){
   }
 }
 
-function createFloatingDecor(){
-  const container = document.getElementById("floatingDecor");
-  if(!container) return;
-
-  const emojis = ["🌷","🌼","🌿","🌱","🥕","🍀","🪻"];
-  const isMobile = window.innerWidth <= 720;
-  const count = isMobile ? 14 : 24;
-
-  container.innerHTML = "";
-
+function placeDecor(container, count, zone, emojis){
   for(let i = 0; i < count; i++){
     const el = document.createElement("div");
     const sizeClass = ["s1","s2","s3","s4"][Math.floor(Math.random() * 4)];
     el.className = "decor " + sizeClass;
     el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
 
-    const left = Math.random() * 100;
-    const top = Math.random() * 100;
+    let left = 0;
+    let top = 0;
+
+    if(zone === "top"){
+      left = 2 + Math.random() * 96;
+      top = 1 + Math.random() * 11;
+    } else if(zone === "bottom"){
+      left = 2 + Math.random() * 96;
+      top = 86 + Math.random() * 11;
+    } else if(zone === "left"){
+      left = 1 + Math.random() * 10;
+      top = 14 + Math.random() * 72;
+    } else if(zone === "right"){
+      left = 89 + Math.random() * 10;
+      top = 14 + Math.random() * 72;
+    }
+
     const rotate = (-18 + Math.random() * 36).toFixed(2);
-    const opacity = (0.58 + Math.random() * 0.28).toFixed(2);
+    const opacity = (0.62 + Math.random() * 0.24).toFixed(2);
     const duration = (7 + Math.random() * 8).toFixed(2);
     const delay = (-Math.random() * 8).toFixed(2);
 
@@ -996,6 +1002,28 @@ function createFloatingDecor(){
     el.style.animationDelay = delay + "s";
 
     container.appendChild(el);
+  }
+}
+
+function createFloatingDecor(){
+  const container = document.getElementById("floatingDecor");
+  if(!container) return;
+
+  const emojis = ["🌷","🌼","🌿","🌱","🥕","🍀","🪻"];
+  const isMobile = window.innerWidth <= 720;
+
+  container.innerHTML = "";
+
+  if(isMobile){
+    placeDecor(container, 6, "top", emojis);
+    placeDecor(container, 6, "bottom", emojis);
+    placeDecor(container, 4, "left", emojis);
+    placeDecor(container, 4, "right", emojis);
+  } else {
+    placeDecor(container, 10, "top", emojis);
+    placeDecor(container, 10, "bottom", emojis);
+    placeDecor(container, 7, "left", emojis);
+    placeDecor(container, 7, "right", emojis);
   }
 }
 
